@@ -17,11 +17,13 @@ RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz \
     && tar -xvf ta-lib-0.4.0-src.tar.gz \
     && cd ta-lib/ \
     && ./configure --prefix=/usr \
-    && make \
+    && sudo make \
     && sudo make install
 
 # Instalamos las librerías de Python necesarias
-RUN pip3 install wheel ib_insync numpy pandas TA-Lib
+RUN pip3 install wheel
+RUN pip3 install TA-Lib
+RUN pip3 install ib_insync
 
 # Ejecutamos el código del algoritmo cuando se inicia el contenedor
 CMD ["python3", "trading_bot.py"]
