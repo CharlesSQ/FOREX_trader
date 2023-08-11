@@ -1,9 +1,10 @@
 from ib_insync import IB, util
 from strategy import Strategy
-from broker_api import connect_ib, define_contract
+from talib import BBANDS, RSI  # type: ignore
+from trader import Trader
 from dataclasses import dataclass
 from typing import List
-import plotly.graph_objects as go
+from utils import plot_bars
 
 
 @dataclass
@@ -25,6 +26,7 @@ def create_order(action, totalQuantity, stop_loss, take_profit):
 
     # Orden principal (a mercado)
     current_orders_length = len(current_orders)
+    print('current_orders_length', current_orders_length)
     order_object: Order = Order(
         action, totalQuantity, stop_loss, take_profit, current_orders_length)
 
@@ -32,12 +34,12 @@ def create_order(action, totalQuantity, stop_loss, take_profit):
     current_orders.append(order_object)
 
 
-def evaluate_orders(dfi):
+def evaluate_orders(df, i):
     print('evaluate_orders')
     # Recorre cada orden
-    higher_price = dfi['High']
+    higher_price = df['high'][i]
     print('higher_price', higher_price)
-    lower_price = dfi['Low']
+    lower_price = df['low'][i]
     print('lower_price', lower_price)
 
     for order in current_orders:
@@ -64,81 +66,68 @@ def evaluate_orders(dfi):
 # Crear una instancia de IB()
 ib = IB()
 print('Conectando a IB')
-connect_ib(ib)
+Trader.connect_ib(ib)
 
 # 2. Definir el contrato (en este caso, la divisa que queremos operar: EURUSD)
-contract = define_contract('EURUSD')
+contract = Trader.define_contract('EURUSD')
 
 
 def main():
 
-    def on_bar_update(bars, has_new_bar):
-        print('on_bar_update')
-        if has_new_bar:
-            new_bar = bars[-1]
-            print(round(new_bar.close, 2))
+    # 3. Solicitar datos históricos de precios para el contrato desde el broker.
+    #    Estamos solicitando datos de los últimos 30 días en barras de 5 minutos.
+    #    Los datos se muestran como el punto medio (MIDPOINT) entre el precio más alto y más bajo.
+    print('Solicitando datos históricos')
+    bars = ib.reqHistoricalData(
+        contract,
+        endDateTime='',
+        durationStr='7 D',
+        barSizeSetting='5 mins',
+        whatToShow='MIDPOINT',
+        useRTH=True,
+        formatDate=1)
 
-    # Primero, debes suscribirte a las actualizaciones de datos en tiempo real.
-    print('Solicitando datos en tiempo real')
-    bars = ib.reqRealTimeBars(contract, 5, 'MIDPOINT', False)
-    bars.updateEvent += on_bar_update
+    # 4. Convertir los datos obtenidos en un DataFrame de pandas para un manejo más fácil.
+    df = util.df(bars)
 
-    # Recoge datos durante 30 segundos. Puedes cambiar esto según tus necesidades.
-    print('Recogiendo datos durante 30 segundos')
-    ib.sleep(30)
+    # Calcular las Bandas de Bollinger.
+    df['upper_band'], df['middle_band'], df['lower_band'] = BBANDS(
+        df['close'], timeperiod=20)
 
-    # No olvides cancelar la suscripción cuando hayas terminado.
-    print('Cancelando suscripción')
-    ib.cancelRealTimeBars(bars)
+    # Calcular el RSI.
+    df['RSI'] = RSI(df['close'], timeperiod=14)
 
-    # # 3. Solicitar datos históricos de precios para el contrato desde el broker.
-    # #    Estamos solicitando datos de los últimos 30 días en barras de 5 minutos.
-    # #    Los datos se muestran como el punto medio (MIDPOINT) entre el precio más alto y más bajo.
-    # print('Solicitando datos históricos')
-    # bars = ib.reqHistoricalData(
-    #     contract,
-    #     endDateTime='',
-    #     durationStr='1 D',
-    #     barSizeSetting='5 mins',
-    #     whatToShow='MIDPOINT',
-    #     useRTH=True,
-    #     formatDate=1)
+    strategy = Strategy()
 
-    # # 4. Convertir los datos obtenidos en un DataFrame de pandas para un manejo más fácil.
-    # df = util.df(bars)
+    # Imprimir gráfico
+    if df is not None:
+        df_length = len(df)
+        # Recorre cada fila del dataframe
+        for i in range(30):
+            print('i', i)
+            # Iniciar si current_order es menor a 10
+            if len(current_orders) < 10000:
+                # Solo evalúa la estrategia después de las primeras 2 horas (necesarios para calcular las Bandas de Bollinger)
+                if i >= 24:
+                    action, stop_loss, take_profit = strategy.run(
+                        df.iloc[:i+1])
 
-    # fig = go.Figure(data=[go.Candlestick(x=df.index,
-    #                                      open=df['open'],
-    #                                      high=df['high'],
-    #                                      low=df['low'],
-    #                                      close=df['close'])])
-    # fig.show()
+                    # Si la estrategia determina que debemos comprar o vender, creamos la orden y la enviamos al broker.
+                    if action != 'None':
+                        # Crear una orden de stop loss y take profit
+                        totalQuantity = balance * 0.01
+                        create_order(
+                            action, totalQuantity, stop_loss, take_profit)
 
-    # if df is not None:
-    #     df_length = len(df)
-    #     # Recorre cada fila del dataframe
-    #     for i in range(df_length):
-    #         # Iniciar si current_order es menor a 10
-    #         if len(current_orders) < 10:
-    #             # Solo evalúa la estrategia después de los primeros 20 días (necesarios para calcular las Bandas de Bollinger)
-    #             if i >= 20:
-    #                 action, stop_loss, take_profit = Strategy()(df.iloc[:i+1])
-    #                 print('action', action)
+                    # # Evaluar ordenes actuales
+                    evaluate_orders(df, i)
 
-    #                 # Si la estrategia determina que debemos comprar o vender, creamos la orden y la enviamos al broker.
-    #                 if action is not 'None':
-    #                     # Crear una orden de stop loss y take profit
-    #                     totalQuantity = balance * 0.01
-    #                     order = create_order(
-    #                         action, totalQuantity, stop_loss, take_profit)
-
-    #                 # Evaluar ordenes actuales
-    #                 evaluate_orders(df.iloc[i])
-
-    # print('current_orders', current_orders)
+    plot_bars(df, strategy.buy_signals, strategy.sell_signals)
+    print('current_orders', current_orders)
+    print('total orders', len(current_orders))
     # print('finished_orders', finished_orders)
 
-    # # Calculate number of wins and losses
+    # Calculate number of wins and losses
     # wins = 0
     # losses = 0
     # for order in finished_orders:
