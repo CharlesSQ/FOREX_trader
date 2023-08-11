@@ -4,7 +4,7 @@ from talib import BBANDS, RSI  # type: ignore
 from trader import Trader
 from dataclasses import dataclass
 from typing import List
-from utils import plot_bars
+from utils import plot_bars_indicators
 
 
 @dataclass
@@ -122,7 +122,7 @@ def main():
                     # # Evaluar ordenes actuales
                     evaluate_orders(df, i)
 
-    plot_bars(df, strategy.buy_signals, strategy.sell_signals)
+    plot_bars_indicators(df, strategy.buy_signals, strategy.sell_signals)
     print('current_orders', current_orders)
     print('total orders', len(current_orders))
     # print('finished_orders', finished_orders)

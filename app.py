@@ -25,7 +25,7 @@ def main():
             contract,
             endDateTime='',
             durationStr='1 D',
-            barSizeSetting='5 mins',
+            barSizeSetting='1 min',
             whatToShow='MIDPOINT',
             useRTH=True,
             formatDate=1)

@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 import datetime
 
 
-def plot_bars(df, buy_signals, sell_signals):
+def plot_bars_indicators(df, buy_signals, sell_signals):
     fig = go.Figure(data=[go.Candlestick(x=df.index,
                                          open=df['open'],
                                          high=df['high'],
@@ -45,6 +45,15 @@ def plot_bars(df, buy_signals, sell_signals):
         yaxis2=dict(domain=[0, 0.2], anchor="x", title="RSI")
     )
 
+    fig.show()
+
+
+def plot_only_bars(df):
+    fig = go.Figure(data=[go.Candlestick(x=df.index,
+                                         open=df['open'],
+                                         high=df['high'],
+                                         low=df['low'],
+                                         close=df['close'])])
     fig.show()
 
 
