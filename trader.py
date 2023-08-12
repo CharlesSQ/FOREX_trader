@@ -2,7 +2,7 @@ from ib_insync import IB, BarData, Contract, MarketOrder, LimitOrder, StopOrder,
 from typing import List, Optional
 from collections import deque
 from datetime import timedelta
-from strategy import Strategy
+from strategies.bollinger_RSI import Strategy
 from constants import BALANCE, RISK, LOT_PRICE
 from utils import plot_only_bars
 import pandas as pd
