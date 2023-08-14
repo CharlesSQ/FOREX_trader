@@ -1,10 +1,9 @@
 from ib_insync import IB, util
 from strategies.bollinger_RSI import Strategy
-from talib import BBANDS, RSI  # type: ignore
 from trader import Trader
 from dataclasses import dataclass
 from typing import List
-from utils import plot_bars_indicators
+from utils import plot_bars_Bollinger_RSI, plot_bars_Bollinger_RSI_SMA, plot_bars_SMA, plot_bars_EMA_RSI
 
 
 @dataclass
@@ -48,6 +47,7 @@ def evaluate_orders(df):
 
             if order.action == 'SELL':
                 if higher_price >= order.stop_loss:
+                    print('LOSS')
                     print('action', order.action)
                     print('higher_price', higher_price)
                     print('stop_loss', order.stop_loss)
@@ -56,6 +56,7 @@ def evaluate_orders(df):
                     break
 
                 elif lower_price <= order.take_profit:
+                    print('WIN')
                     print('action', order.action)
                     print('lower_price', lower_price)
                     print('take_profit', order.take_profit)
@@ -65,6 +66,7 @@ def evaluate_orders(df):
 
             elif order.action == 'BUY':
                 if lower_price <= order.stop_loss:
+                    print('LOSS')
                     print('action', order.action)
                     print('lower_price', lower_price)
                     print('stop_loss', order.stop_loss)
@@ -73,6 +75,7 @@ def evaluate_orders(df):
                     break
 
                 elif higher_price >= order.take_profit:
+                    print('WIN')
                     print('action', order.action)
                     print('higher_price', higher_price)
                     print('take_profit', order.take_profit)
@@ -98,9 +101,9 @@ def main():
     print('Solicitando datos históricos')
     bars = ib.reqHistoricalData(
         contract,
-        endDateTime='20230721 23:59:00 US/Eastern',
+        endDateTime='20230505 23:59:00 US/Eastern',
         durationStr='5 D',
-        barSizeSetting='1 min',
+        barSizeSetting='5 mins',
         whatToShow='MIDPOINT',
         useRTH=True,
         formatDate=1)
@@ -133,11 +136,8 @@ def main():
     # Calcular las indicadores para graficarlas en el plot.
     df_copy = df.copy()
 
-    df_copy['upper_band'], df_copy['middle_band'], df_copy['lower_band'] = BBANDS(
-        df_copy['close'], timeperiod=20, nbdevup=2, nbdevdn=2, matype=0)
-    df_copy['RSI'] = RSI(df_copy['close'], timeperiod=14)
-
-    plot_bars_indicators(df_copy, strategy.buy_signals, strategy.sell_signals)
+    plot_bars_Bollinger_RSI(
+        df_copy, strategy.buy_signals, strategy.sell_signals)
 
     # Evaluar ordenes actuales
     evaluate_orders(df)
