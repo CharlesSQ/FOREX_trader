@@ -15,9 +15,10 @@ class Order:
     order_id: int
 
 
-BALANCE = 10000
+INITIAL_BALANCE: int = 755
+current_balance = INITIAL_BALANCE
 ORDERS_LIMIT = 10000
-current_orders: List[Order] = []
+all_orders: List[Order] = []
 finished_orders = []
 
 
@@ -29,13 +30,16 @@ def create_order(action, totalQuantity, stop_loss, take_profit, order_id):
         action, totalQuantity, stop_loss, take_profit, order_id)
 
     # Add order to current orders
-    current_orders.append(order_object)
+    all_orders.append(order_object)
 
 
 def evaluate_orders(df):
     print('evaluate_orders')
+    global current_balance
+    global all_orders
+    global finished_orders
 
-    for order in current_orders:
+    for order in all_orders:
         # Recorre cada orden
         df_length = len(df)
 
@@ -53,6 +57,7 @@ def evaluate_orders(df):
                     print('stop_loss', order.stop_loss)
                     finished_orders.append(
                         {'order_id': order.order_id, 'result': 'LOSS'})
+                    current_balance = current_balance - order.totalQuantity
                     break
 
                 elif lower_price <= order.take_profit:
@@ -62,6 +67,7 @@ def evaluate_orders(df):
                     print('take_profit', order.take_profit)
                     finished_orders.append(
                         {'order_id': order.order_id, 'result': 'PROFIT'})
+                    current_balance = current_balance + order.totalQuantity
                     break
 
             elif order.action == 'BUY':
@@ -72,6 +78,7 @@ def evaluate_orders(df):
                     print('stop_loss', order.stop_loss)
                     finished_orders.append(
                         {'order_id': order.order_id, 'result': 'LOSS'})
+                    current_balance = current_balance - order.totalQuantity
                     break
 
                 elif higher_price >= order.take_profit:
@@ -81,6 +88,7 @@ def evaluate_orders(df):
                     print('take_profit', order.take_profit)
                     finished_orders.append(
                         {'order_id': order.order_id, 'result': 'PROFIT'})
+                    current_balance = current_balance + order.totalQuantity
                     break
 
 
@@ -101,7 +109,7 @@ def main():
     print('Solicitando datos históricos')
     bars = ib.reqHistoricalData(
         contract,
-        endDateTime='20230505 23:59:00 US/Eastern',
+        endDateTime='20230421 23:59:00 US/Eastern',
         durationStr='5 D',
         barSizeSetting='5 mins',
         whatToShow='MIDPOINT',
@@ -119,7 +127,7 @@ def main():
         # Recorre cada fila del dataframe
         for i in range(df_length):
             # Iniciar si current_order es menor a 10
-            if len(current_orders) < ORDERS_LIMIT:
+            if len(all_orders) < ORDERS_LIMIT:
                 # Solo evalúa la estrategia después de las primeras 40 barras (necesarios para calcular las Bandas de Bollinger)
                 if i >= 40:
                     action, stop_loss, take_profit = strategy.run(
@@ -129,7 +137,7 @@ def main():
                     if action != 'None':
                         # print('i', i)
                         # Crear una orden de stop loss y take profit
-                        totalQuantity = BALANCE * 0.01
+                        totalQuantity = INITIAL_BALANCE * 0.01
                         create_order(
                             action, totalQuantity, stop_loss, take_profit, i)
 
@@ -142,8 +150,8 @@ def main():
     # Evaluar ordenes actuales
     evaluate_orders(df)
 
-    # print('current_orders', current_orders)
-    print('total orders', len(current_orders))
+    # print('all_orders', all_orders)
+    print('total orders', len(all_orders))
     # print('finished_orders', finished_orders)
 
     # Calculate number of wins and losses
@@ -160,6 +168,7 @@ def main():
     print('wins', wins)
     print('losses', losses)
     print('win_rate', win_rate)
+    print('current_balance', current_balance)
 
 
 if __name__ == "__main__":

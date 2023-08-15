@@ -171,9 +171,12 @@ def plot_bars_EMA_RSI(df, buy_signals, sell_signals):
 
 def plot_bars_SMA(df, buy_signals, sell_signals):
     # Cálculo de las medias móviles y agregarlas al DataFrame
-    df['SMA20'] = SMA(df['close'].values, timeperiod=100)
-    df['SMA50'] = SMA(df['close'].values, timeperiod=200)
+    df['SMA20'] = SMA(df['close'].values, timeperiod=20)
+    df['SMA50'] = SMA(df['close'].values, timeperiod=100)
     df['SMA400'] = SMA(df['close'].values, timeperiod=400)
+
+    # Agregar RSI
+    df['RSI'] = RSI(df['close'], timeperiod=14)
 
     fig = go.Figure(data=[go.Candlestick(x=df.index,
                                          open=df['open'],
@@ -188,6 +191,22 @@ def plot_bars_SMA(df, buy_signals, sell_signals):
         x=df.index, y=df['SMA50'], name='SMA50', line=dict(color='gray')))
     fig.add_trace(go.Scatter(
         x=df.index, y=df['SMA400'], name='SMA400', line=dict(color='black')))
+
+    # Crear un gráfico separado para el RSI.
+    fig.add_trace(go.Scatter(
+        x=df.index, y=df['RSI'], name='RSI', yaxis='y2', line=dict(color='black')))
+
+    # Agregar líneas horizontales para los niveles de 70 y 30.
+    fig.add_trace(go.Scatter(x=df.index, y=[
+                  70] * len(df.index), name='Overbought (70)', yaxis='y2', line=dict(color='red', dash='dash')))
+    fig.add_trace(go.Scatter(x=df.index, y=[
+                  30] * len(df.index), name='Oversold (30)', yaxis='y2', line=dict(color='green', dash='dash')))
+
+    # Actualizar el diseño para incluir el RSI en una segunda escala de eje y.
+    fig.update_layout(
+        yaxis=dict(domain=[0.3, 1]),
+        yaxis2=dict(domain=[0, 0.2], anchor="x", title="RSI")
+    )
 
     # Agregar las señales de compra
     for buy_signal in buy_signals:
