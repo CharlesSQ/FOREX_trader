@@ -16,8 +16,8 @@ class Trader:
         self.ib = ib
         self.contract = contract
         self.df = util.df(bars)
+        self.df.drop('date', axis=1, inplace=True)
         self.buffer_dfs = deque()
-        self.last_five_min_time = None
         self.current_orders: int = 0
 
     @staticmethod
@@ -48,46 +48,49 @@ class Trader:
             new_bar = bars[-1]
             # Convertir el nuevo bar en un DataFrame y añadirlo al buffer
             new_df = util.df([new_bar])
-            print('new_df columns', new_df.columns)
             self.buffer_dfs.append(new_df)
             print('New bar added to buffer')
+            print('New bar time:', new_bar.time)
             print(f'buffer size: {len(self.buffer_dfs)}')
 
-            # Si han pasado más de 5 minutos desde el último bar de 5 minutos, creamos un nuevo bar de 5 minutos
-            if (self.last_five_min_time is None or new_bar.time > self.last_five_min_time + timedelta(minutes=1)):
+            # Si buffer_dfs tiene 60 barras, crear una nueva vela de 5 minutos
+            if (len(self.buffer_dfs) == 3):
                 print('"""Creating new 5 minute bar..."""')
                 # Crear una nueva vela de 5 minutos a partir del buffer y añadirla al DataFrame
-                five_min_df = pd.concat(self.buffer_dfs)
-                five_min_df.set_index('time', inplace=True)
-                print('df columns', self.df.columns)
-                five_min_df = five_min_df.resample('1Min').agg({'open_': 'first',
-                                                                'high': 'max',
-                                                                'low': 'min',
-                                                                'close': 'last',
-                                                                'volume': 'sum'})
+                five_sec_df = pd.concat(self.buffer_dfs)
+                print('five_sec_df concat\n', five_sec_df)
+                five_sec_df.set_index('time', inplace=True)
 
-                five_min_df = five_min_df.rename(columns={'open_': 'open'})
+                data = {
+                    'open': five_sec_df['open_'].iloc[0],
+                    'high': five_sec_df['high'].max(),
+                    'low': five_sec_df['low'].min(),
+                    'close': five_sec_df['close'].iloc[-1],
+                    'volume': five_sec_df['volume'].sum()
+                }
 
-                columns_to_add = ['date', 'average', 'barCount']
+                five_min_df = pd.DataFrame([data])
+                # five_min_df = five_min_df.rename(columns={'open_': 'open'})
+
+                columns_to_add = ['average', 'barCount']
                 for col in columns_to_add:
                     five_min_df[col] = np.nan
 
-                print('five_min_df columns', five_min_df.columns)
+                print('df\n', self.df.tail(5))
+                print('five_min_df\n', five_min_df)
                 self.df = pd.concat([self.df, five_min_df])
+                print('new df\n', self.df.tail(5))
                 print('New 5 minute bar created')
-
-                # Imprimir las 3 últimas barras del DataFrame si hay al menos las 3
-                # if len(self.df) >= 3:
-                #     print('3 last data frames:', self.df.tail(3))
 
                 # Imprimit el tamaño del DataFrame
                 print(f'New DataFrame size: {len(self.df)}')
 
-                plot_only_bars(self.df)
+                # plot_only_bars(self.df)
 
                 # Limpiar el buffer y actualizar la última hora de la vela de 5 minutos
                 self.buffer_dfs.clear()
                 self.last_five_min_time = new_bar.time
+                print('last_five_min_time', self.last_five_min_time)
 
                 # # Llamar a la estrategia en el nuevo DataFrame
                 # action, stop_loss, take_profit = Strategy()(self.df)
@@ -97,8 +100,8 @@ class Trader:
                 # if order is not None:
                 #     self._execute_order(order)
 
-                # # Eliminar el primer elemento del DataFrame para no consumir demasiada memoria
-                # self.df = self.df.iloc[1:]
+                # Eliminar el primer elemento del DataFrame para no consumir demasiada memoria
+                self.df = self.df.iloc[1:]
 
     def _evaluate_action(self, action: str, stop_loss: float, take_profit: float) -> Optional[List[Order]]:
         if action != 'None':
