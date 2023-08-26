@@ -1,2 +1,4 @@
 /forex/
 /ta-lib/
+/__pycache__/
+/strategies/__pycache__/
