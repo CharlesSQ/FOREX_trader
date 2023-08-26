@@ -14,17 +14,8 @@ class Strategy:
     _buy_signals = []
     _sell_signals = []
 
-    def __call__(self, df) -> Any:
-        self._get_signal(df=df)
-        self._set_stop_and_limit(df)
-
-        print('action', self.action)
-        print('close', df['close'].iloc[-1])
-        print('stop_loss', self.stop_loss)
-        print('take_profit', self.take_profit)
-        return self.action, self.stop_loss, self.take_profit
-
     def run(self, df) -> Any:
+        """Ejecuta la estrategia en el DataFrame proporcionado."""
         self._get_signal(self, df=df, test=True)
         self._set_stop_and_limit(df)
 
@@ -97,7 +88,7 @@ class Strategy:
 
     def _set_stop_and_limit(self, df):
         pip_value = 0.0001
-        max_pips = 5
+        max_pips = 10
 
         # Obtener el precio de cierre más reciente
         latest_close = df['close'].iloc[-1]

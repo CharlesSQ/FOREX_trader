@@ -5,46 +5,48 @@ import datetime
 
 
 def plot_bars_Bollinger_RSI(df, buy_signals, sell_signals):
-    df['upper_band'], df['middle_band'], df['lower_band'] = BBANDS(
-        df['close'], timeperiod=20, nbdevup=2, nbdevdn=2, matype=0)
+    df_copy = df.copy()
 
-    df['RSI'] = RSI(df['close'], timeperiod=14)
+    df_copy['upper_band'], df_copy['middle_band'], df_copy['lower_band'] = BBANDS(
+        df_copy['close'], timeperiod=20, nbdevup=2, nbdevdn=2, matype=0)
 
-    fig = go.Figure(data=[go.Candlestick(x=df.index,
-                                         open=df['open'],
-                                         high=df['high'],
-                                         low=df['low'],
-                                         close=df['close'])])
+    df_copy['RSI'] = RSI(df_copy['close'], timeperiod=14)
+
+    fig = go.Figure(data=[go.Candlestick(x=df_copy.index,
+                                         open=df_copy['open'],
+                                         high=df_copy['high'],
+                                         low=df_copy['low'],
+                                         close=df_copy['close'])])
 
     # Agregar las Bandas de Bollinger.
     fig.add_trace(go.Scatter(
-        x=df.index, y=df['upper_band'], name='Upper Band', line=dict(color='cyan')))
+        x=df_copy.index, y=df_copy['upper_band'], name='Upper Band', line=dict(color='cyan')))
     fig.add_trace(go.Scatter(
-        x=df.index, y=df['middle_band'], name='Middle Band', line=dict(color='green')))
+        x=df_copy.index, y=df_copy['middle_band'], name='Middle Band', line=dict(color='green')))
     fig.add_trace(go.Scatter(
-        x=df.index, y=df['lower_band'], name='Lower Band', line=dict(color='magenta')))
+        x=df_copy.index, y=df_copy['lower_band'], name='Lower Band', line=dict(color='magenta')))
 
     # Agregar las señales de compra
     for buy_signal in buy_signals:
-        fig.add_trace(go.Scatter(x=[buy_signal], y=[df['low'][buy_signal]],
+        fig.add_trace(go.Scatter(x=[buy_signal], y=[df_copy['low'][buy_signal]],
                                  mode='markers', marker=dict(color='green', size=10),
                                  name='Buy Signal'))
 
     # Agregar las señales de venta
     for sell_signal in sell_signals:
-        fig.add_trace(go.Scatter(x=[sell_signal], y=[df['high'][sell_signal]],
+        fig.add_trace(go.Scatter(x=[sell_signal], y=[df_copy['high'][sell_signal]],
                                  mode='markers', marker=dict(color='red', size=10),
                                  name='Sell Signal'))
 
     # Crear un gráfico separado para el RSI.
     fig.add_trace(go.Scatter(
-        x=df.index, y=df['RSI'], name='RSI', yaxis='y2', line=dict(color='black')))
+        x=df_copy.index, y=df_copy['RSI'], name='RSI', yaxis='y2', line=dict(color='black')))
 
     # Agregar líneas horizontales para los niveles de 70 y 30.
-    fig.add_trace(go.Scatter(x=df.index, y=[
-                  70] * len(df.index), name='Overbought (70)', yaxis='y2', line=dict(color='red', dash='dash')))
-    fig.add_trace(go.Scatter(x=df.index, y=[
-                  30] * len(df.index), name='Oversold (30)', yaxis='y2', line=dict(color='green', dash='dash')))
+    fig.add_trace(go.Scatter(x=df_copy.index, y=[
+                  70] * len(df_copy.index), name='Overbought (70)', yaxis='y2', line=dict(color='red', dash='dash')))
+    fig.add_trace(go.Scatter(x=df_copy.index, y=[
+                  30] * len(df_copy.index), name='Oversold (30)', yaxis='y2', line=dict(color='green', dash='dash')))
 
     # Actualizar el diseño para incluir el RSI en una segunda escala de eje y.
     fig.update_layout(
@@ -233,6 +235,7 @@ def plot_only_bars(df):
 
 
 def check_time(callback):
+    """Función que verifica si es sábado a las 00:00 y llama a la función de devolución de llamada"""
     current_time = datetime.datetime.now()
     if current_time.weekday() == 5 and current_time.hour == 0 and current_time.minute == 0:
         callback()  # Llamar a la función de devolución de llamada (en este caso, ib.disconnect)
