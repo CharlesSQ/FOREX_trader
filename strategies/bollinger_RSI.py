@@ -5,8 +5,8 @@ from talib import BBANDS, RSI  # type: ignore
 class Strategy:
 
     action: str = ''
-    stop_loss: float
-    take_profit: float
+    stop_loss: float = 0
+    take_profit: float = 0
     _RSI_overbought_cross = ''
     _RSI_oversold_cross = ''
     _buy = 'ON'
@@ -17,7 +17,8 @@ class Strategy:
     def run(self, df) -> Any:
         """Ejecuta la estrategia en el DataFrame proporcionado."""
         self._get_signal(self, df=df, test=True)
-        self._set_stop_and_limit(df)
+        if self.action != 'None':
+            self._set_stop_and_limit(df)
 
         # print('action', self.action)
         # print('close', df['close'].iloc[-1])
@@ -38,30 +39,8 @@ class Strategy:
         # El RSI es un indicador de momentum que puede ayudar a identificar si un precio está en una situación de sobrecompra o sobreventa.
         df_copy.loc[:, 'RSI'] = RSI(df_copy['close'], timeperiod=14)
 
-        # print('price', df_copy['close'].iloc[-1])
-        # print('higher_band', df_copy['upper_band'].iloc[-1])
-        # print('lower_band', df_copy['lower_band'].iloc[-1])
-        # print('RSI', df_copy['RSI'].iloc[-1])
-
-        # Evaluar si el RSI cruza por debajo de 70
-        if self._RSI_overbought_cross == 'ABOVE_70' and df_copy['RSI'].iloc[-1] < 70:
-            self._RSI_overbought_cross = 'CROSS_BELOW_70'
-        elif self._RSI_overbought_cross == 'CROSS_BELOW_70' and df_copy['RSI'].iloc[-1] > df_copy['RSI'].iloc[-2]:
-            self._RSI_overbought_cross = ''
-        elif df_copy['RSI'].iloc[-1] > 70:
-            self._RSI_overbought_cross = 'ABOVE_70'
-
-        # Evaluar si el RSI cruza por encima de 30
-        if self._RSI_oversold_cross == 'BELOW_30' and df_copy['RSI'].iloc[-1] > 30:
-            self._RSI_oversold_cross = 'CROSS_ABOVE_30'
-        elif self._RSI_oversold_cross == 'CROSS_ABOVE_30' and df_copy['RSI'].iloc[-1] < df_copy['RSI'].iloc[-2]:
-            self._RSI_oversold_cross = ''
-        elif df_copy['RSI'].iloc[-1] < 30:
-            self._RSI_oversold_cross = 'BELOW_30'
-
         # Señal de compra: si el precio sobrepasa la Banda de Bollinger inferior y el RSI cruza por encima de 30
         if df_copy['RSI'].iloc[-1] < 30:
-            # if df_copy['close'].iloc[-1] < df_copy['lower_band'].iloc[-1] and self._RSI_oversold_cross == 'CROSS_ABOVE_30' and df_copy['RSI'].iloc[-1] <= 32:
             if df_copy['close'].iloc[-1] < df_copy['lower_band'].iloc[-1] and self._buy == 'ON':
                 self._buy = 'OFF'
                 self.action = "BUY"
@@ -70,10 +49,12 @@ class Strategy:
                     self.buy_signals.append(df_copy.index[-1])
             elif df_copy['close'].iloc[-1] > df_copy['lower_band'].iloc[-1] and self._buy == 'OFF':
                 self._buy = 'ON'
+                self.action = 'None'
+            # else:
+            #     self.action = 'None'
 
         # Señal de venta: si el precio sobrepasa la Banda de Bollinger superior y el RSI cruza por debajo de 70
         elif df_copy['RSI'].iloc[-1] > 70:
-            # elif df_copy['close'].iloc[-1] > df_copy['upper_band'].iloc[-1] and self._RSI_overbought_cross == 'CROSS_BELOW_70' and df_copy['RSI'].iloc[-1] <= 72:
             if df_copy['close'].iloc[-1] > df_copy['upper_band'].iloc[-1] and self._sell == 'ON':
                 self._sell = 'OFF'
                 self.action = "SELL"
@@ -82,13 +63,16 @@ class Strategy:
                     self.sell_signals.append(df_copy.index[-1])
             elif df_copy['close'].iloc[-1] < df_copy['upper_band'].iloc[-1] and self._sell == 'OFF':
                 self._sell = 'ON'
+                self.action = 'None'
+            # else:
+            #     self.action = 'None'
 
         else:
             self.action = 'None'
 
     def _set_stop_and_limit(self, df):
         pip_value = 0.0001
-        max_pips = 10
+        max_pips = 5
 
         # Obtener el precio de cierre más reciente
         latest_close = df['close'].iloc[-1]

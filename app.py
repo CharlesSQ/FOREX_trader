@@ -20,7 +20,7 @@ def main():
     historique_bars = ib.reqHistoricalData(
         contract,
         endDateTime='',
-        durationStr='7200 S',
+        durationStr='2400 S',
         barSizeSetting='1 min',
         whatToShow='MIDPOINT',
         useRTH=True,
@@ -47,18 +47,6 @@ def main():
         # Cancelar la suscripción cuando se presiona Ctrl+C
         print('Cancelling subscription...')
         print('Ordenes agregadas', len(trader.all_orders))
-
-        # Get orders from ib
-        executed_orders = ib.fills()
-
-        winning_orders = [
-            order for order in executed_orders if order.profitLoss > 0]
-        losing_orders = [
-            order for order in executed_orders if order.profitLoss < 0]
-
-        print("Ordenes ejecutadas: ", len(executed_orders))
-        print("Ordenes ganadas: ", len(winning_orders))
-        print("Ordenes perdidas: ", len(losing_orders))
 
         ib.cancelRealTimeBars(bars)
 

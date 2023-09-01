@@ -15,9 +15,9 @@ class Order:
     order_id: int
 
 
-INITIAL_BALANCE: int = 755
+INITIAL_BALANCE: int = 500
+RISK: float = 0.04
 current_balance = INITIAL_BALANCE
-ORDERS_LIMIT = 10000
 all_orders: List[Order] = []
 finished_orders = []
 
@@ -109,7 +109,7 @@ def main():
     print('Solicitando datos históricos')
     bars = ib.reqHistoricalData(
         contract,
-        endDateTime='20230421 23:59:00 US/Eastern',
+        endDateTime='20221104 23:59:00 US/Eastern',
         durationStr='5 D',
         barSizeSetting='5 mins',
         whatToShow='MIDPOINT',
@@ -126,26 +126,25 @@ def main():
         df_length = len(df)
         # Recorre cada fila del dataframe
         for i in range(df_length):
-            # Iniciar si current_order es menor a 10
-            if len(all_orders) < ORDERS_LIMIT:
-                # Solo evalúa la estrategia después de las primeras 40 barras (necesarios para calcular las Bandas de Bollinger)
-                if i >= 40:
-                    action, stop_loss, take_profit = strategy.run(
-                        df.iloc[:i+1])
+            # Solo evalúa la estrategia después de las primeras 40 barras (necesarios para calcular las Bandas de Bollinger)
+            BARS_FOR_BOLLINGER = 40
+            if i >= BARS_FOR_BOLLINGER:
+                action, stop_loss, take_profit = strategy.run(
+                    df.iloc[:i+1])
 
-                    # Si la estrategia determina que debemos comprar o vender, creamos la orden y la enviamos al broker.
-                    if action != 'None':
-                        # print('i', i)
-                        # Crear una orden de stop loss y take profit
-                        totalQuantity = INITIAL_BALANCE * 0.01
-                        create_order(
-                            action, totalQuantity, stop_loss, take_profit, i)
+                # Si la estrategia determina que debemos comprar o vender, creamos la orden y la enviamos al broker.
+                if action != 'None':
+                    # print('i', i)
+                    # Crear una orden de stop loss y take profit
+                    totalQuantity = INITIAL_BALANCE * RISK
+                    create_order(
+                        action, totalQuantity, stop_loss, take_profit, i)
 
-    # Calcular las indicadores para graficarlas en el plot.
-    df_copy = df.copy()
+    # Graficar en el plot.
+    # df_copy = df.copy()
 
-    plot_bars_Bollinger_RSI(
-        df_copy, strategy.buy_signals, strategy.sell_signals)
+    # plot_bars_Bollinger_RSI(
+    #     df_copy, strategy.buy_signals, strategy.sell_signals)
 
     # Evaluar ordenes actuales
     evaluate_orders(df)
