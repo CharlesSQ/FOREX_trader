@@ -144,14 +144,19 @@ class Trader:
             print('take_profit', take_profit)
 
             # Ajustar el stop loss y take profit para tener en cuenta el spread
-            adjusted_stop_loss = stop_loss - spread
-            adjusted_take_profit = take_profit + spread
+            if action == 'BUY':
+                adjusted_stop_loss = stop_loss - spread
+                adjusted_take_profit = take_profit + spread
+            else:
+                adjusted_stop_loss = stop_loss + spread
+                adjusted_take_profit = take_profit - spread
+
             print('adjusted_stop_loss', adjusted_stop_loss)
             print('adjusted_take_profit', adjusted_take_profit)
 
             # Calcular el tamaño de la posición en lotes
             stop_loss_distance = round(abs(
-                self.df['close'].iloc[-1] - adjusted_stop_loss) * 10000, 1)
+                self.df['close'].iloc[-1] - adjusted_stop_loss) * 10000, 3)
             print('stop_loss_distance', stop_loss_distance)
 
             position_size_in_lot_units = BALANCE * RISK / \
