@@ -1,7 +1,8 @@
 from threading import Timer
 from talib import BBANDS, RSI, SMA, EMA  # type: ignore
+from datetime import datetime
 import plotly.graph_objects as go
-import datetime
+import csv
 
 
 def plot_bars_Bollinger_RSI(df, buy_signals, sell_signals):
@@ -235,10 +236,46 @@ def plot_only_bars(df):
 
 
 def check_time(callback):
-    """Función que verifica si es sábado a las 00:00 y llama a la función de devolución de llamada"""
-    current_time = datetime.datetime.now()
-    if current_time.weekday() == 5 and current_time.hour == 0 and current_time.minute == 0:
-        callback()  # Llamar a la función de devolución de llamada (en este caso, ib.disconnect)
+    """Función para ejecutar una devolución de llamada los sábados a las 00:00 o otras dias a las 23:58"""
+    current_time = datetime.now()
+    current_time_str = current_time.strftime('%H:%M')
+    if (current_time.weekday() == 5 and current_time.hour == 0 and current_time.minute == 0) or current_time_str == '12:58':
+        callback()  # Llamar a la función de devolución de llamada
+
     else:
         # Replanificar la verificación para el próximo minuto
         Timer(60, check_time, args=(callback,)).start()
+
+
+def print_executions_to_csv(executions_by_parent):
+    # Abre un archivo en modo append ('a')
+    with open('ejecuciones.csv', 'a', newline='') as f:
+        writer = csv.writer(f)
+
+        # Si el archivo está vacío, añade la fila de encabezado.
+        if f.tell() == 0:
+            writer.writerow(['Parent ID', 'Action', 'Price', 'Quantity'])
+
+        # Ahora, executions_by_parent contiene las ejecuciones agrupadas por su parentId
+        for parent_id, executions in executions_by_parent.items():
+            for fill in executions:
+                # Escribe cada fila de datos
+                writer.writerow([parent_id, fill.execution.side,
+                                fill.execution.price, fill.execution.shares])
+
+
+def print_local_orders_to_csv(orders):
+    # Abre un archivo en modo append ('a')
+    with open('ordenes_locales.csv', 'a', newline='') as f:
+        writer = csv.writer(f)
+
+        # Si el archivo está vacío, añade la fila de encabezado.
+        if f.tell() == 0:
+            writer.writerow(['Date', 'Order ID', 'Action',
+                            'Quantity', 'Price', 'Stop Loss', 'Take Profit'])
+
+        # Ahora, executions_by_parent contiene las ejecuciones agrupadas por su parentId
+        for order in orders:
+            # Escribe cada fila de datos
+            writer.writerow([order.date, order.parent_id, order.action,
+                            order.quantity, order.price, order.stop_loss, order.take_profit])

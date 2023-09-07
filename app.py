@@ -1,6 +1,7 @@
 from ib_insync import IB
 from trader import Trader
 from utils import check_time
+from get_excutions import get_executions
 
 # Crear una instancia de IB()
 ib = IB()
@@ -37,7 +38,7 @@ def main():
     bars.updateEvent += trader.on_bar_update
 
     # Iniciar la verificación de tiempo para detener el programa los sábados a las 00:00
-    check_time(ib.disconnect)
+    check_time(get_executions)
 
     try:
         # Iniciar el ciclo de eventos del cliente de Interactive Brokers.

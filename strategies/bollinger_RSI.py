@@ -45,13 +45,14 @@ class Strategy:
                 self._buy = 'OFF'
                 self.action = "BUY"
 
-                if test:
-                    self.buy_signals.append(df_copy.index[-1])
             elif df_copy['close'].iloc[-1] > df_copy['lower_band'].iloc[-1] and self._buy == 'OFF':
                 self._buy = 'ON'
                 self.action = 'None'
             # else:
             #     self.action = 'None'
+
+            if test and self.action == 'BUY':
+                self.buy_signals.append(df_copy.index[-1])
 
         # Señal de venta: si el precio sobrepasa la Banda de Bollinger superior y el RSI cruza por debajo de 70
         elif df_copy['RSI'].iloc[-1] > 70:
@@ -59,13 +60,14 @@ class Strategy:
                 self._sell = 'OFF'
                 self.action = "SELL"
 
-                if test:
-                    self.sell_signals.append(df_copy.index[-1])
             elif df_copy['close'].iloc[-1] < df_copy['upper_band'].iloc[-1] and self._sell == 'OFF':
                 self._sell = 'ON'
                 self.action = 'None'
             # else:
             #     self.action = 'None'
+
+            if test and self.action == 'SELL':
+                self.sell_signals.append(df_copy.index[-1])
 
         else:
             self.action = 'None'

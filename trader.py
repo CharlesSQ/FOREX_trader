@@ -13,11 +13,13 @@ import numpy as np
 
 @dataclass
 class Order:
+    date: str
+    order_id: int
     action: str
-    totalQuantity: int
+    quantity: int
+    price: float
     stop_loss: float
     take_profit: float
-    order_id: int
 
 
 class Trader:
@@ -118,133 +120,133 @@ class Trader:
                 action, stop_loss, take_profit = self.strategy.run(self.df)
                 print('action', action)
 
-                order = self._evaluate_action(
-                    action, stop_loss, take_profit)
+                if action != 'None':
+                    position_size_in_lot_units, adjusted_stop_loss, adjusted_take_profit = self._evaluate_action(
+                        action, stop_loss, take_profit)
 
-                if order is not None:
-                    self._place_orders(order)
+                    self._place_orders(action=action, totalQuantity=position_size_in_lot_units,
+                                       stop_loss=adjusted_stop_loss, take_profit=adjusted_take_profit)
 
                 # Eliminar el primer elemento del DataFrame para no consumir demasiada memoria
                 self.df = self.df.iloc[1:]
 
     def _evaluate_action(self, action: str, stop_loss: float, take_profit: float) -> Optional[List[Order]]:
-        print('_evaluate_action')
-        if action != 'None':
-            LOT_PRICE = 10
-            LOT_SIZE = 100000
-
-            plot_bars_Bollinger_RSI(
-                self.df, self.strategy.buy_signals, self.strategy.sell_signals)
-
-            # Calcular el spread
-            spread: float = self.current_ask - self.current_bid
-            print(f"Current spread: {spread}")
-            print('close', self.df['close'].iloc[-1])
-            print('stop_loss', stop_loss)
-            print('take_profit', take_profit)
-
-            # Ajustar el stop loss y take profit para tener en cuenta el spread
-            if action == 'BUY':
-                adjusted_stop_loss = stop_loss - spread
-                adjusted_take_profit = take_profit + spread
-            else:
-                adjusted_stop_loss = stop_loss + spread
-                adjusted_take_profit = take_profit - spread
-
-            print('adjusted_stop_loss', adjusted_stop_loss)
-            print('adjusted_take_profit', adjusted_take_profit)
-
-            # Calcular el tamaño de la posición en lotes
-            stop_loss_distance = round(abs(
-                self.df['close'].iloc[-1] - adjusted_stop_loss) * 10000, 3)
-            print('stop_loss_distance', stop_loss_distance)
-
-            position_size_in_lot_units = BALANCE * RISK / \
-                (stop_loss_distance * LOT_PRICE) * LOT_SIZE
-            print('position_size_in_lot_units', position_size_in_lot_units)
-
-            # Crear una orden de stop loss y take profit
-            order = self._create_order(
-                action, position_size_in_lot_units, adjusted_stop_loss, adjusted_take_profit)
-
-            return order
-        return None
-
-    def _create_order(self, action: str, totalQuantity: int, stop_loss: float, take_profit: float) -> List[Order]:
         """
-        Esta función crea una orden de stop limit para stop loss y una orden limitada para take profit.
+        Esta función evalúa la acción de la estrategia y devuelve el tamaño de la posición en lotes, el precio de stop loss y el precio de take profit.
+        """
+        print('_evaluate_action')
+        LOT_PRICE = 10
+        LOT_SIZE = 100000
 
-        Parámetros:
-        - action (str): "BUY" o "SELL", dependiendo de si quieres comprar o vender.
-        - totalQuantity (int): la cantidad total que quieres comprar o vender.
-        - stop_loss (float): el precio al que quieres vender en caso de que el precio vaya en tu contra.
-        - take_profit (float): el precio al que quieres vender en caso de que el precio vaya a tu favor.
+        plot_bars_Bollinger_RSI(
+            self.df, self.strategy.buy_signals, self.strategy.sell_signals)
 
-        Retorna:
-        - bracket_order: una lista de las dos órdenes que componen la orden de soporte (parent, take_profit, stop_loss)
+        # Calcular el spread
+        spread: float = self.current_ask - self.current_bid
+        print(f"Current spread: {spread}")
+        print('close', self.df['close'].iloc[-1])
+        print('stop_loss', stop_loss)
+        print('take_profit', take_profit)
+
+        # Ajustar el stop loss y take profit para tener en cuenta el spread
+        if action == 'BUY':
+            adjusted_stop_loss = stop_loss - spread
+            adjusted_take_profit = take_profit + spread
+        else:
+            adjusted_stop_loss = stop_loss + spread
+            adjusted_take_profit = take_profit - spread
+
+        print('adjusted_stop_loss', adjusted_stop_loss)
+        print('adjusted_take_profit', adjusted_take_profit)
+
+        # Calcular el tamaño de la posición en lotes
+        stop_loss_distance = round(abs(
+            self.df['close'].iloc[-1] - adjusted_stop_loss) * 10000, 3)
+        print('stop_loss_distance', stop_loss_distance)
+
+        position_size_in_lot_units = round(BALANCE * RISK /
+                                           (stop_loss_distance * LOT_PRICE) * LOT_SIZE)
+        print('position_size_in_lot_units', position_size_in_lot_units)
+
+        return position_size_in_lot_units, adjusted_stop_loss, adjusted_take_profit
+
+    def _place_orders(self, action: str, totalQuantity: int, stop_loss: float, take_profit: float) -> List[Order]:
+        """
+        Esta función crea y envía una orden de mercado, una orden stop loss y una orden take profit al broker.
+        Parametros:
+            action (str): La acción de la orden. Puede ser 'BUY' o 'SELL'.
+            totalQuantity (int): El tamaño de la posición en lotes.
+            stop_loss (float): El precio de stop loss.
+            take_profit (float): El precio de take profit.
         """
         opposite_action = "SELL" if action == "BUY" else "BUY"
 
-        print('Creating market order...')
+        try:
+           # Crear y enviar una orden de mercado
+            market_order = MarketOrder(action, totalQuantity)
+            print('Placing market order')
+            self.ib.placeOrder(self.contract, market_order)
 
-        # Crear y enviar una orden de mercado
-        parent_order = MarketOrder(action, totalQuantity)
+            oca_group = f'OCA_{self.ib.client.getReqId()}'
 
-        # Crear un grupo OCA para la orden de soporte
-        oca_group = f'OCA_{self.ib.client.getReqId()}'
+            # Crear y enviar la orden Stop
+            stop_order = StopOrder(action=opposite_action, totalQuantity=totalQuantity, stopPrice=stop_loss,
+                                   ocaGroup=oca_group, ocaType=1, tif='GTC')
+            print('Placing stop order')
+            self.ib.placeOrder(self.contract, stop_order)
 
-        # Crear y enviar la orden Stop
-        stop_order = StopOrder(action=opposite_action, totalQuantity=totalQuantity, stopPrice=stop_loss,
-                               ocaGroup=oca_group, ocaType=1, parentId=parent_order.orderId, tif='GTC')
+            # Crear y enviar la orden Limit
+            profit_order = LimitOrder(action=opposite_action, totalQuantity=totalQuantity, lmtPrice=take_profit,
+                                      ocaGroup=oca_group, ocaType=1, tif='GTC')
+            print('Placing profit order')
+            self.ib.placeOrder(self.contract, profit_order)
 
-        # Crear y enviar la orden Limit
-        profit_order = LimitOrder(action=opposite_action, totalQuantity=totalQuantity, lmtPrice=take_profit,
-                                  ocaGroup=oca_group, ocaType=1, parentId=parent_order.orderId, tif='GTC')
+            # Añadir las órdenes a la lista de órdenes
+            self._add_order_to_list(market_order.orderId, action, totalQuantity,
+                                    self.df['close'].iloc[-1], stop_loss, take_profit)
 
-        bracket_order = [parent_order, stop_order, profit_order]
+        except Exception as e:
+            print(f'Error placing order: {e}')
 
-        return bracket_order
+    # def _place_orders(self, bracket_order: List[Order]):
+    #     print('Placing bracket order...')
+    #     attempt_counter = 0
+    #     MAX_ATTEMPTS = 10
 
-    def _place_orders(self, bracket_order: List[Order]):
-        print('Placing bracket order...')
-        attempt_counter = 0
-        MAX_ATTEMPTS = 10
+    #     first_order_filled = False
+    #     for o in bracket_order:
+    #         try:
+    #             trade = self.ib.placeOrder(self.contract, o)
+    #             print(f'{o.action} {o.orderType} order submitted.')
+    #             print('trade', trade.log)
+    #             if not first_order_filled:
+    #                 while True:
+    #                     self.ib.sleep(0.1)
+    #                     self.ib.reqOpenOrders()
+    #                     current_status = trade.orderStatus.status
+    #                     if current_status == 'Filled':
+    #                         first_order_filled = True
+    #                         print(
+    #                             f'First Order {o.orderId} status: {current_status}')
+    #                         break
+    #                     elif current_status in ['Cancelled', 'Rejected']:
+    #                         print(f'Order was {current_status}. Exiting.')
+    #                         exit(1)
 
-        first_order_filled = False
-        for o in bracket_order:
-            try:
-                trade = self.ib.placeOrder(self.contract, o)
-                print(f'{o.action} {o.orderType} order submitted.')
-                print('trade', trade.log)
-                if not first_order_filled:
-                    while True:
-                        self.ib.sleep(0.1)
-                        self.ib.reqOpenOrders()
-                        current_status = trade.orderStatus.status
-                        if current_status == 'Filled':
-                            first_order_filled = True
-                            print(
-                                f'First Order {o.orderId} status: {current_status}')
-                            break
-                        elif current_status in ['Cancelled', 'Rejected']:
-                            print(f'Order was {current_status}. Exiting.')
-                            exit(1)
+    #                     attempt_counter += 1
+    #                     if attempt_counter >= MAX_ATTEMPTS:
+    #                         print('Max attempts reached. Exiting.')
+    #                         exit(1)
 
-                        attempt_counter += 1
-                        if attempt_counter >= MAX_ATTEMPTS:
-                            print('Max attempts reached. Exiting.')
-                            exit(1)
+    #         except Exception as e:
+    #             print(f'Error placing order: {e}')
 
-            except Exception as e:
-                print(f'Error placing order: {e}')
-
-    def _add_order_to_list(self, action, totalQuantity, stop_loss, take_profit):
-        # Set date time as order id
-        order_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    def _add_order_to_list(self, order_id, action, quantity, price, stop_loss, take_profit):
+        date = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
         # Create order object
         order_object: Order = Order(
-            action, totalQuantity, stop_loss, take_profit, order_id)
+            date, order_id, action, quantity, price, stop_loss, take_profit)
 
         # Add order to current orders
         self._all_orders.append(order_object)
