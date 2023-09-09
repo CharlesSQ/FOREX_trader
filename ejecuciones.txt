@@ -1,3 +1,0 @@
-Imprimiendo ejecuciones
-Parent ID: 114
- Action: BOT, Price: 1.0795, Quantity: 25000.0

@@ -9,10 +9,10 @@ ib.connect('127.0.0.1', 7497, clientId=1)
 contract = Forex('EURUSD')
 
 action = 'SELL'
-currentPrice = 1.0726
+currentPrice = 1.0717
 totalQuantity = 20000
-stop_loss = 1.0730
-take_profit = 1.0723
+stop_loss = 1.0720
+take_profit = 1.0714
 
 opposite_action = "SELL" if action == "BUY" else "BUY"
 
@@ -20,7 +20,9 @@ opposite_action = "SELL" if action == "BUY" else "BUY"
 # Crear y enviar una orden de mercado
 market_order = MarketOrder(action, totalQuantity)
 print('Placing market order')
-ib.placeOrder(contract, market_order)
+trade1 = ib.placeOrder(contract, market_order)
+print(f'{market_order.action} {market_order.orderType} order submitted.')
+print('trade', trade1.log)
 
 oca_group = f'OCA_{ib.client.getReqId()}'
 
@@ -28,13 +30,33 @@ oca_group = f'OCA_{ib.client.getReqId()}'
 stop_order = StopOrder(action=opposite_action, totalQuantity=totalQuantity, stopPrice=stop_loss,
                        ocaGroup=oca_group, ocaType=1, tif='GTC')
 print('Placing stop order')
-ib.placeOrder(contract, stop_order)
+trade2 = ib.placeOrder(contract, stop_order)
+print(f'{stop_order.action} {stop_order.orderType} order submitted.')
+print('trade', trade2.log)
 
 # Crear y enviar la orden Limit
 profit_order = LimitOrder(action=opposite_action, totalQuantity=totalQuantity, lmtPrice=take_profit,
                           ocaGroup=oca_group, ocaType=1, tif='GTC')
 print('Placing profit order')
-ib.placeOrder(contract, profit_order)
+trade3 = ib.placeOrder(contract, profit_order)
+print(f'{profit_order.action} {profit_order.orderType} order submitted.')
+print('trade', trade3.log)
+
+while True:
+    ib.sleep(1)
+    ib.reqOpenOrders()
+
+    print(
+        f'1st Order {market_order.orderId} status: {trade1.orderStatus.status}')
+
+    print(
+        f'2nd" Order {stop_order.orderId} status: {trade2.orderStatus.status}')
+
+    print(
+        f'3rd Order {profit_order.orderId} status: {trade3.orderStatus.status}')
+
+    if trade1.orderStatus.status == 'Filled' and trade2.orderStatus.status == 'PreSubmitted' and trade3.orderStatus.status == 'PreSubmitted':
+        break
 
 
 # bracket_order = [market_order, stop_order, profit_order]
@@ -72,4 +94,4 @@ ib.placeOrder(contract, profit_order)
 
 #     except Exception as e:
 #         print(f'Error placing order: {e}')
-ib.disconnect()
+# ib.disconnect()

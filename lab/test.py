@@ -1,9 +1,12 @@
-from ib_insync import IB, util
-from strategies.bollinger_RSI import Strategy
-from trader import Trader
-from dataclasses import dataclass
-from typing import List
+import sys
+sys.path.append('/path/to/strategies/folder')  # noqa
+
 from utils import plot_bars_Bollinger_RSI, plot_bars_Bollinger_RSI_SMA, plot_bars_SMA, plot_bars_EMA_RSI
+from typing import List
+from dataclasses import dataclass
+from trader import Trader
+from strategies.bollinger_RSI_SMA import Strategy
+from ib_insync import IB, util
 
 
 @dataclass

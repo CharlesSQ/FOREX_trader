@@ -34,11 +34,9 @@ def main():
     trader.subscribe_ticker()
 
     # Suscribirse a las actualizaciones de datos en tiempo real
+    print('Subscribing to real time bars...')
     bars = ib.reqRealTimeBars(contract, 5, 'MIDPOINT', False)
     bars.updateEvent += trader.on_bar_update
-
-    # Iniciar la verificación de tiempo para detener el programa los sábados a las 00:00
-    check_time(get_executions)
 
     try:
         # Iniciar el ciclo de eventos del cliente de Interactive Brokers.

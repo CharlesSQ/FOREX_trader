@@ -61,33 +61,22 @@ class Strategy:
         # print('RSI', df_copy['RSI'].iloc[-1])
 
         # Señal de compra: si el precio sobrepasa la Banda de Bollinger inferior y el SMA20 cruza por encima del SMA50
-        if df_copy['EMA9'].iloc[-1] > df_copy['EMA21'].iloc[-1] and df_copy['RSI'].iloc[-1] > 50 and \
-                self._EMA9 == 'CROSS_UP' and self._EMA9_CROSS_UP_COUNT == 1:
+        if df_copy['EMA9'].iloc[-1] > df_copy['EMA21'].iloc[-1]:
 
-            # Vela alcista
-            if df_copy['close'].iloc[-1] > df_copy['open'].iloc[-1]:
-                self.action = "BUY"
-
-            if test:
-                self.buy_signals.append(df_copy.index[-1])
+            self.action = "BUY"
 
         # Señal de venta: si el precio sobrepasa la Banda de Bollinger superior y el SMA20 cruza por debajo del SMA50
-        elif df_copy['EMA9'].iloc[-1] < df_copy['EMA21'].iloc[-1] and df_copy['RSI'].iloc[-1] < 50 and \
-                self._EMA9 == 'CROSS_DOWN' and self._EMA9_CROSS_DOWN_COUNT == 1:
+        elif df_copy['EMA9'].iloc[-1] < df_copy['EMA21'].iloc[-1]:
 
             # Vela bajista
-            if df_copy['close'].iloc[-1] < df_copy['open'].iloc[-1]:
-                self.action = "SELL"
-
-            if test:
-                self.sell_signals.append(df_copy.index[-1])
+            self.action = "SELL"
 
         else:
             self.action = 'None'
 
     def _set_stop_and_limit(self, df):
         pip_value = 0.0001
-        max_pips = 10
+        max_pips = 5
 
         # Obtener el precio de cierre más reciente
         latest_close = df['close'].iloc[-1]

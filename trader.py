@@ -3,10 +3,11 @@ import time
 from ib_insync import IB, BarData, Contract, MarketOrder, LimitOrder, StopOrder, Order, Forex, util, Ticker
 from typing import List, Optional
 from collections import deque
-from strategies.bollinger_RSI import Strategy
-from constants import BALANCE, RISK
-from utils import plot_bars_Bollinger_RSI
 from dataclasses import dataclass
+from strategies.EMA_RSI import Strategy
+from get_excutions import get_executions
+from constants import BALANCE, RISK
+from utils import plot_bars_Bollinger_RSI, print_local_orders_to_csv
 import pandas as pd
 import numpy as np
 
@@ -130,6 +131,9 @@ class Trader:
                 # Eliminar el primer elemento del DataFrame para no consumir demasiada memoria
                 self.df = self.df.iloc[1:]
 
+                # Obtener ejecuciones del días
+                get_executions(self.ib)
+
     def _evaluate_action(self, action: str, stop_loss: float, take_profit: float) -> Optional[List[Order]]:
         """
         Esta función evalúa la acción de la estrategia y devuelve el tamaño de la posición en lotes, el precio de stop loss y el precio de take profit.
@@ -142,7 +146,7 @@ class Trader:
             self.df, self.strategy.buy_signals, self.strategy.sell_signals)
 
         # Calcular el spread
-        spread: float = self.current_ask - self.current_bid
+        spread: float = round(self.current_ask - self.current_bid, 5)
         print(f"Current spread: {spread}")
         print('close', self.df['close'].iloc[-1])
         print('stop_loss', stop_loss)
@@ -150,11 +154,11 @@ class Trader:
 
         # Ajustar el stop loss y take profit para tener en cuenta el spread
         if action == 'BUY':
-            adjusted_stop_loss = stop_loss - spread
-            adjusted_take_profit = take_profit + spread
+            adjusted_stop_loss = round(stop_loss - spread, 5)
+            adjusted_take_profit = round(take_profit + spread, 5)
         else:
-            adjusted_stop_loss = stop_loss + spread
-            adjusted_take_profit = take_profit - spread
+            adjusted_stop_loss = round(stop_loss + spread, 5)
+            adjusted_take_profit = round(take_profit - spread, 5)
 
         print('adjusted_stop_loss', adjusted_stop_loss)
         print('adjusted_take_profit', adjusted_take_profit)
@@ -185,7 +189,9 @@ class Trader:
            # Crear y enviar una orden de mercado
             market_order = MarketOrder(action, totalQuantity)
             print('Placing market order')
-            self.ib.placeOrder(self.contract, market_order)
+            trade1 = self.ib.placeOrder(self.contract, market_order)
+            print(f'{market_order.action} {market_order.orderType} order submitted.')
+            print('trade1', trade1.log)
 
             oca_group = f'OCA_{self.ib.client.getReqId()}'
 
@@ -193,13 +199,17 @@ class Trader:
             stop_order = StopOrder(action=opposite_action, totalQuantity=totalQuantity, stopPrice=stop_loss,
                                    ocaGroup=oca_group, ocaType=1, tif='GTC')
             print('Placing stop order')
-            self.ib.placeOrder(self.contract, stop_order)
+            trade2 = self.ib.placeOrder(self.contract, stop_order)
+            print(f'{stop_order.action} {stop_order.orderType} order submitted.')
+            print('trade2', trade2.log)
 
             # Crear y enviar la orden Limit
             profit_order = LimitOrder(action=opposite_action, totalQuantity=totalQuantity, lmtPrice=take_profit,
                                       ocaGroup=oca_group, ocaType=1, tif='GTC')
             print('Placing profit order')
-            self.ib.placeOrder(self.contract, profit_order)
+            trade3 = self.ib.placeOrder(self.contract, profit_order)
+            print(f'{profit_order.action} {profit_order.orderType} order submitted.')
+            print('trade3', trade3.log)
 
             # Añadir las órdenes a la lista de órdenes
             self._add_order_to_list(market_order.orderId, action, totalQuantity,
@@ -250,6 +260,9 @@ class Trader:
 
         # Add order to current orders
         self._all_orders.append(order_object)
+
+        # Print orders to csv
+        print_local_orders_to_csv(order_object)
 
     @property
     def all_orders(self):
