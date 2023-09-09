@@ -1,0 +1,22 @@
+version: "3.4"
+
+services:
+  ib-gateway:
+    image: ghcr.io/unusualalpha/ib-gateway:10.22.1m
+    restart: always
+    environment:
+      TWS_USERID: charlesjsq
+      TWS_PASSWORD: LA@q7Pn*CFV-_vg
+      TRADING_MODE: paper
+      READ_ONLY_API: no
+      VNC_SERVER_PASSWORD: not defined
+    ports:
+      - "127.0.0.1:4001:4001"
+      - "127.0.0.1:4002:4002"
+      - "127.0.0.1:5900:5900"
+  trader-bot:
+    container_name: "trader_bot"
+    build:
+      context: .
+    volumes:
+      - ./data:/app/data

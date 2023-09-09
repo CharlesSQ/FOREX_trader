@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ib-gateway-secrets
+type: Opaque
+data:
+  TWS_USERID: [base64-encoded-value]
+  TWS_PASSWORD: [base64-encoded-value]
+  VNC_SERVER_PASSWORD: [base64-encoded-value]
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: trader-bot-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ib-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ib-gateway
+  template:
+    metadata:
+      labels:
+        app: ib-gateway
+    spec:
+      containers:
+        - name: ib-gateway
+          image: ghcr.io/unusualalpha/ib-gateway:10.22.1m
+          env:
+            - name: TWS_USERID
+              valueFrom:
+                secretKeyRef:
+                  name: ib-gateway-secrets
+                  key: TWS_USERID
+            - name: TWS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ib-gateway-secrets
+                  key: TWS_PASSWORD
+            - name: VNC_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ib-gateway-secrets
+                  key: VNC_SERVER_PASSWORD
+            - name: TRADING_MODE
+              value: paper
+            - name: READ_ONLY_API
+              value: no
+          ports:
+            - containerPort: 4001
+            - containerPort: 4002
+            - containerPort: 5900
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ib-gateway-service
+spec:
+  type: ClusterIP
+  ports:
+    - name: port-4001
+      port: 4001
+      targetPort: 4001
+    - name: port-4002
+      port: 4002
+      targetPort: 4002
+    - name: vnc
+      port: 5900
+      targetPort: 5900
+  selector:
+    app: ib-gateway
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trader-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trader-bot
+  template:
+    metadata:
+      labels:
+        app: trader-bot
+    spec:
+      containers:
+        - name: trader-bot
+          image: YOUR_IMAGE_REGISTRY/trader-bot:YOUR_TAG
+          volumeMounts:
+            - mountPath: /app/data
+              name: data-volume
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: trader-bot-pvc
