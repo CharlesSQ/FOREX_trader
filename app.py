@@ -1,6 +1,5 @@
 from ib_insync import IB
 from trader import Trader
-from utils import check_time
 from get_excutions import get_executions
 
 # Crear una instancia de IB()
