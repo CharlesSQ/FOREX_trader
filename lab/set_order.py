@@ -1,6 +1,5 @@
 from ib_insync import IB
-from ib_insync import IB, BarData, Contract, MarketOrder, LimitOrder, StopOrder, Order, Forex, util, Ticker
-import time
+from ib_insync import IB, MarketOrder, LimitOrder, StopOrder, Forex
 
 # Crear una instancia de IB()
 ib = IB()
