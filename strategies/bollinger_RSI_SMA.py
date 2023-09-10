@@ -53,7 +53,7 @@ class Strategy:
         # Señal de venta: si el precio sobrepasa la Banda de Bollinger superior y el SMA20 cruza por debajo del SMA50
         elif df_copy['RSI'].iloc[-1] > 70 and df_copy['close'].iloc[-1] > df_copy['upper_band'].iloc[-1]:
             self.action = "SELL"
-            self.buy_signals.appesnd(df_copy.index[-1])
+            self.buy_signals.append(df_copy.index[-1])
 
         else:
             self.action = 'None'
