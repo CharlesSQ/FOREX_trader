@@ -1,12 +1,11 @@
 import sys
-sys.path.append('/path/to/strategies/folder')  # noqa
+sys.path.append('/home/charles/Desktop/FOREX_trader')  # noqa
 
 from utils import plot_bars_Bollinger_RSI, plot_bars_Bollinger_RSI_SMA, plot_bars_SMA, plot_bars_EMA_RSI
 from typing import List
 from dataclasses import dataclass
-from trader import Trader
-from strategies.bollinger_RSI_SMA import Strategy
-from ib_insync import IB, util
+from strategies.bollinger_RSI import Strategy
+from ib_insync import IB, util, Forex
 
 
 @dataclass
@@ -54,20 +53,20 @@ def evaluate_orders(df):
 
             if order.action == 'SELL':
                 if higher_price >= order.stop_loss:
-                    print('LOSS')
-                    print('action', order.action)
-                    print('higher_price', higher_price)
-                    print('stop_loss', order.stop_loss)
+                    # print('LOSS')
+                    # print('action', order.action)
+                    # print('higher_price', higher_price)
+                    # print('stop_loss', order.stop_loss)
                     finished_orders.append(
                         {'order_id': order.order_id, 'result': 'LOSS'})
                     current_balance = current_balance - order.totalQuantity
                     break
 
                 elif lower_price <= order.take_profit:
-                    print('WIN')
-                    print('action', order.action)
-                    print('lower_price', lower_price)
-                    print('take_profit', order.take_profit)
+                    # print('WIN')
+                    # print('action', order.action)
+                    # print('lower_price', lower_price)
+                    # print('take_profit', order.take_profit)
                     finished_orders.append(
                         {'order_id': order.order_id, 'result': 'PROFIT'})
                     current_balance = current_balance + order.totalQuantity
@@ -75,20 +74,20 @@ def evaluate_orders(df):
 
             elif order.action == 'BUY':
                 if lower_price <= order.stop_loss:
-                    print('LOSS')
-                    print('action', order.action)
-                    print('lower_price', lower_price)
-                    print('stop_loss', order.stop_loss)
+                    # print('LOSS')
+                    # print('action', order.action)
+                    # print('lower_price', lower_price)
+                    # print('stop_loss', order.stop_loss)
                     finished_orders.append(
                         {'order_id': order.order_id, 'result': 'LOSS'})
                     current_balance = current_balance - order.totalQuantity
                     break
 
                 elif higher_price >= order.take_profit:
-                    print('WIN')
-                    print('action', order.action)
-                    print('higher_price', higher_price)
-                    print('take_profit', order.take_profit)
+                    # print('WIN')
+                    # print('action', order.action)
+                    # print('higher_price', higher_price)
+                    # print('take_profit', order.take_profit)
                     finished_orders.append(
                         {'order_id': order.order_id, 'result': 'PROFIT'})
                     current_balance = current_balance + order.totalQuantity
@@ -98,10 +97,10 @@ def evaluate_orders(df):
 # Crear una instancia de IB()
 ib = IB()
 print('Conectando a IB')
-Trader.connect_ib(ib)
+ib.connect('127.0.0.1', 7497, clientId=1)
 
 # 2. Definir el contrato (en este caso, la divisa que queremos operar: EURUSD)
-contract = Trader.define_contract('EURUSD')
+contract = Forex('EURUSD')
 
 
 def main():
@@ -112,7 +111,7 @@ def main():
     print('Solicitando datos históricos')
     bars = ib.reqHistoricalData(
         contract,
-        endDateTime='20221104 23:59:00 US/Eastern',
+        endDateTime='20230825 23:59:00 US/Eastern',
         durationStr='5 D',
         barSizeSetting='5 mins',
         whatToShow='MIDPOINT',
