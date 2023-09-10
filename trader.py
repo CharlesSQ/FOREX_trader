@@ -48,7 +48,8 @@ class Trader:
     def connect_ib(ib: IB):
         """Connect to IB"""
         print('Connecting to Interactive Brokers...')
-        ib.connect('127.0.0.1', 7497, clientId=1)
+        # ib.connect('127.0.0.1', 7497, clientId=1)
+        ib.connect('127.0.0.1', 4002, clientId=1)
 
     def on_ticker_update(self, ticker: Ticker):
         self.current_bid = ticker.bid
