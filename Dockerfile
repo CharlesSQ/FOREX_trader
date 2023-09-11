@@ -26,4 +26,4 @@ RUN pip3 install TA-Lib
 RUN pip3 install ib_insync
 
 # Ejecutamos el código del algoritmo cuando se inicia el contenedor
-CMD ["python3", "trading_bot.py"]
+CMD ["python3", "app.py"]

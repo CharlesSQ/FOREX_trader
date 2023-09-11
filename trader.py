@@ -1,11 +1,10 @@
 import datetime
 import time
-from ib_insync import IB, BarData, Contract, MarketOrder, LimitOrder, StopOrder, Order, Forex, util, Ticker
+from ib_insync import IB, BarData, Contract, MarketOrder, LimitOrder, StopOrder, Forex, util, Ticker
 from typing import List, Optional
 from collections import deque
 from dataclasses import dataclass
 from strategies.EMA_RSI import Strategy
-from get_excutions import get_executions
 from constants import BALANCE, RISK
 from utils import plot_bars_Bollinger_RSI, print_local_orders_to_csv
 import pandas as pd
@@ -48,8 +47,8 @@ class Trader:
     def connect_ib(ib: IB):
         """Connect to IB"""
         print('Connecting to Interactive Brokers...')
-        # ib.connect('127.0.0.1', 7497, clientId=1)
-        ib.connect('127.0.0.1', 4002, clientId=1)
+        ib.connect('127.0.0.1', 7497, clientId=1)
+        # ib.connect('127.0.0.1', 4002, clientId=1)
 
     def on_ticker_update(self, ticker: Ticker):
         self.current_bid = ticker.bid
@@ -131,9 +130,6 @@ class Trader:
 
                 # Eliminar el primer elemento del DataFrame para no consumir demasiada memoria
                 self.df = self.df.iloc[1:]
-
-                # Obtener ejecuciones del días
-                get_executions(self.ib)
 
     def _evaluate_action(self, action: str, stop_loss: float, take_profit: float) -> Optional[List[Order]]:
         """

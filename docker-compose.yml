@@ -5,11 +5,10 @@ services:
     image: ghcr.io/unusualalpha/ib-gateway:10.22.1m
     restart: always
     environment:
-      TWS_USERID: charlesjsq
-      TWS_PASSWORD: LA@q7Pn*CFV-_vg
-      TRADING_MODE: paper
-      READ_ONLY_API: no
-      VNC_SERVER_PASSWORD: not defined
+      TWS_USERID: ${TWS_USERID}
+      TWS_PASSWORD: ${TWS_PASSWORD}
+      TRADING_MODE: "paper"
+      READ_ONLY_API: "no"
     ports:
       - "127.0.0.1:4001:4001"
       - "127.0.0.1:4002:4002"
