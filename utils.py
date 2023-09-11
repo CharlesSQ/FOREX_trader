@@ -236,7 +236,7 @@ def plot_only_bars(df):
 def print_executions_to_csv(executions_by_parent):
     # Abre un archivo en modo append ('a')
     print('Print executions to csv')
-    with open('ejecuciones.csv', 'a', newline='') as f:
+    with open('data/ejecuciones.csv', 'a', newline='') as f:
         writer = csv.writer(f)
 
         # Si el archivo está vacío, añade la fila de encabezado.
@@ -254,7 +254,7 @@ def print_executions_to_csv(executions_by_parent):
 def print_local_orders_to_csv(order):
     print('Ordenes locales', order)
     # Abre un archivo en modo append ('a')
-    with open('ordenes_locales.csv', 'a', newline='') as f:
+    with open('data/ordenes_locales.csv', 'a', newline='') as f:
         writer = csv.writer(f)
 
         # Si el archivo está vacío, añade la fila de encabezado.
