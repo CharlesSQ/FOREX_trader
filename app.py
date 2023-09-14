@@ -1,6 +1,5 @@
 from ib_insync import IB
 from trader import Trader
-from get_excutions import get_executions
 
 # Crear una instancia de IB()
 ib = IB()
@@ -46,10 +45,7 @@ def main():
         print('Cancelling subscription...')
         print('Ordenes agregadas', len(trader.all_orders))
 
-        ib.cancelRealTimeBars(bars)
-
-        if trader.ticker:
-            ib.cancelMktData(trader.ticker)
+        ib.disconnect()
 
 
 if __name__ == "__main__":

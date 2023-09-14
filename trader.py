@@ -6,7 +6,8 @@ from collections import deque
 from dataclasses import dataclass
 from strategies.EMA_RSI import Strategy
 from constants import BALANCE, RISK
-from utils import plot_bars_Bollinger_RSI, print_local_orders_to_csv
+# from utils import plot_bars_Bollinger_RSI, print_local_orders_to_csv
+from utils import print_local_orders_to_csv
 import pandas as pd
 import numpy as np
 
@@ -47,8 +48,8 @@ class Trader:
     def connect_ib(ib: IB):
         """Connect to IB"""
         print('Connecting to Interactive Brokers...')
-        ib.connect('127.0.0.1', 7497, clientId=1)
-        # ib.connect('127.0.0.1', 4002, clientId=1)
+        # ib.connect('127.0.0.1', 7497, clientId=1)
+        ib.connect('localhost', 4002, clientId=999)
 
     def on_ticker_update(self, ticker: Ticker):
         self.current_bid = ticker.bid
@@ -81,10 +82,10 @@ class Trader:
             # print(f'buffer size: {len(self.buffer_dfs)}')
 
             # Si buffer_dfs tiene 60 barras, crear una nueva vela de 5 minutos
-            FIVE_SEC_BARS = 12
+            FIVE_SEC_BARS = 60
             if (len(self.buffer_dfs) == FIVE_SEC_BARS):
                 print('"""Creating new 5 minute bar..."""')
-                start_time = time.time()
+                # start_time = time.time()
                 # Crear una nueva vela de 5 minutos a partir del buffer y añadirla al DataFrame
                 five_sec_df = pd.concat(self.buffer_dfs)
                 print('five_sec_df concat\n', five_sec_df)
@@ -131,6 +132,9 @@ class Trader:
                 # Eliminar el primer elemento del DataFrame para no consumir demasiada memoria
                 self.df = self.df.iloc[1:]
 
+                # end_time = time.time()
+                # print(f'Elapsed time {end_time - start_time} seconds')
+
     def _evaluate_action(self, action: str, stop_loss: float, take_profit: float) -> Optional[List[Order]]:
         """
         Esta función evalúa la acción de la estrategia y devuelve el tamaño de la posición en lotes, el precio de stop loss y el precio de take profit.
@@ -139,8 +143,8 @@ class Trader:
         LOT_PRICE = 10
         LOT_SIZE = 100000
 
-        plot_bars_Bollinger_RSI(
-            self.df, self.strategy.buy_signals, self.strategy.sell_signals)
+        # plot_bars_Bollinger_RSI(
+        #     self.df, self.strategy.buy_signals, self.strategy.sell_signals)
 
         # Calcular el spread
         spread: float = round(self.current_ask - self.current_bid, 5)

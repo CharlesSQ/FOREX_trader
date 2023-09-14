@@ -21,36 +21,4 @@ De manera opuesta, si el precio toca o sobrepasa la Banda de Bollinger inferior 
 
 Comenta todo el codigo y utiliza buenas practicas de programación en python.
 """
-Pruebas Saldo Variación %
-Semana 0 200 0
-Semana 1 228 14
-Semana 2 246 7.9
-Semana 3 283 15
-Semana 4 326 15.2
-Semana 5 348 6.7
-Semana 6 401 15.2
-Semana 7 377 -6
-Semana 8 422 11.9
-Semana 9 553 31
-Semana 10 569 2.9
-Semana 11 626 10
-Semana 12 632 1
-Semana 13 670 6
-Semana 14 771 15
-Semana 15 755 -2.1
-Semana 16 944 25
-Semana 17 992 5.1
-Semana 18 1120 12.1
-Semana 19 1076 -3.9
-Semana 20 1280 19
-Semana 21 1306 2
-Semana 22 1397 7
-Semana 23 1481 6
-Semana 24 1510 2
-Semana 25 1405 -7
-Semana 26 1489 6
-Semana 27 2025 36
-Semana 28 2309 14
-Semana 29 2424 5
-Semana 30 2836 17
-Semana 31 3347 18
+docker run -d --env IB_ACCOUNT=charlesjsq --env IB_PASSWORD=LA@q7Pn\*CFV-\_vg --env TRADE_MODE=paper -p 4002:4002 charlessq/ib-gateway-ibc:v1.2 tail -f /dev/null

@@ -1,0 +1,16 @@
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.github
+/forex/
+/ta-lib/
+/__pycache__/
+/strategies/__pycache__/
+lab
+.env
+.gitignore
+docker-compose.yml
+kubernetes.yml
+Dockerfile
+README.md
