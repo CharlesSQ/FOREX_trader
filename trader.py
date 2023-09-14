@@ -122,12 +122,12 @@ class Trader:
                 action, stop_loss, take_profit = self.strategy.run(self.df)
                 print('action', action)
 
-                if action != 'None':
-                    position_size_in_lot_units, adjusted_stop_loss, adjusted_take_profit = self._evaluate_action(
-                        action, stop_loss, take_profit)
+                # if action != 'None':
+                #     position_size_in_lot_units, adjusted_stop_loss, adjusted_take_profit = self._evaluate_action(
+                #         action, stop_loss, take_profit)
 
-                    self._place_orders(action=action, totalQuantity=position_size_in_lot_units,
-                                       stop_loss=adjusted_stop_loss, take_profit=adjusted_take_profit)
+                #     self._place_orders(action=action, totalQuantity=position_size_in_lot_units,
+                #                        stop_loss=adjusted_stop_loss, take_profit=adjusted_take_profit)
 
                 # Eliminar el primer elemento del DataFrame para no consumir demasiada memoria
                 self.df = self.df.iloc[1:]
