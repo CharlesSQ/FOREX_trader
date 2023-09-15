@@ -4,7 +4,7 @@ from ib_insync import IB, BarData, Contract, MarketOrder, LimitOrder, StopOrder,
 from typing import List, Optional
 from collections import deque
 from dataclasses import dataclass
-from strategies.EMA_RSI import Strategy
+from strategies.bollinger_RSI import Strategy
 from constants import BALANCE, RISK
 # from utils import plot_bars_Bollinger_RSI, print_local_orders_to_csv
 from utils import print_local_orders_to_csv
