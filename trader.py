@@ -219,39 +219,6 @@ class Trader:
         except Exception as e:
             print(f'Error placing order: {e}')
 
-    # def _place_orders(self, bracket_order: List[Order]):
-    #     print('Placing bracket order...')
-    #     attempt_counter = 0
-    #     MAX_ATTEMPTS = 10
-
-    #     first_order_filled = False
-    #     for o in bracket_order:
-    #         try:
-    #             trade = self.ib.placeOrder(self.contract, o)
-    #             print(f'{o.action} {o.orderType} order submitted.')
-    #             print('trade', trade.log)
-    #             if not first_order_filled:
-    #                 while True:
-    #                     self.ib.sleep(0.1)
-    #                     self.ib.reqOpenOrders()
-    #                     current_status = trade.orderStatus.status
-    #                     if current_status == 'Filled':
-    #                         first_order_filled = True
-    #                         print(
-    #                             f'First Order {o.orderId} status: {current_status}')
-    #                         break
-    #                     elif current_status in ['Cancelled', 'Rejected']:
-    #                         print(f'Order was {current_status}. Exiting.')
-    #                         exit(1)
-
-    #                     attempt_counter += 1
-    #                     if attempt_counter >= MAX_ATTEMPTS:
-    #                         print('Max attempts reached. Exiting.')
-    #                         exit(1)
-
-    #         except Exception as e:
-    #             print(f'Error placing order: {e}')
-
     def _add_order_to_list(self, order_id, action, quantity, price, stop_loss, take_profit):
         date = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
