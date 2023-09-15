@@ -82,7 +82,7 @@ class Trader:
             # print(f'buffer size: {len(self.buffer_dfs)}')
 
             # Si buffer_dfs tiene 60 barras, crear una nueva vela de 5 minutos
-            FIVE_SEC_BARS = 60
+            FIVE_SEC_BARS = 4
             if (len(self.buffer_dfs) == FIVE_SEC_BARS):
                 print('"""Creating new 5 minute bar..."""')
                 # start_time = time.time()
