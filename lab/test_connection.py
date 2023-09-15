@@ -12,5 +12,9 @@ while not ib.isConnected():
     wait -= 1
     if wait <= 0:
         break
-print('ib is connected')
+if ib.isConnected():
+    print('ib is connected')
+else:
+    print('Cannot connect to IB')
+
 ib.disconnect()
