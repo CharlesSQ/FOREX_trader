@@ -1,5 +1,10 @@
 from ib_insync import IB
 from trader import Trader
+import logging
+import sys
+
+logging.basicConfig(level=logging.INFO, stream=sys.stdout,
+                    format="[%(asctime)s]%(levelname)s:%(message)s")
 
 # Crear una instancia de IB()
 ib = IB()
@@ -15,7 +20,7 @@ def main():
     # Solicitar datos históricos de precios para el contrato desde el broker.
     # Estamos solicitando datos de los último día en barras de 5 minutos.
     # Los datos se muestran como el punto medio (MIDPOINT) entre el precio más alto y más bajo.
-    print('Requesting historical data...')
+    logging.info('Requesting historical data...')
     historique_bars = ib.reqHistoricalData(
         contract,
         endDateTime='',
@@ -32,7 +37,7 @@ def main():
     trader.subscribe_ticker()
 
     # Suscribirse a las actualizaciones de datos en tiempo real
-    print('Subscribing to real time bars...')
+    logging.info('Subscribing to real time bars...')
     bars = ib.reqRealTimeBars(contract, 5, 'MIDPOINT', False)
     bars.updateEvent += trader.on_bar_update
 
