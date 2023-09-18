@@ -108,7 +108,7 @@ pip3 install -r requirements.txt
 ## Run IB Gateway
 
 ```
-docker run -d --env IB_ACCOUNT=charlesjsq --env IB_PASSWORD=LA@q7Pn\*CFV-\_vg --env TRADE_MODE=paper -p 4002:4002 charlessq/ib-gateway-ibc:v1.2 tail -f /dev/null
+docker run -d --env IB_ACCOUNT=charlesjsq --env IB_PASSWORD=LA@q7Pn*CFV-_vg --env TRADE_MODE=paper -p 4002:4002 charlessq/ib-gateway-ibc:v1.2 tail -f /dev/null
 ```
 
 ## Run trader-bot
