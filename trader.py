@@ -9,11 +9,11 @@ from constants import BALANCE, RISK
 from utils import print_local_orders_to_csv
 import pandas as pd
 import numpy as np
-import logging
-import sys
+# import logging
+# import sys
 
-logging.basicConfig(level=logging.INFO, stream=sys.stdout,
-                    format="[%(asctime)s]%(levelname)s:%(message)s")
+# logging.basicConfig(level=logging.INFO, stream=sys.stdout,
+#                     format="[%(asctime)s]%(levelname)s:%(message)s")
 
 
 @dataclass
@@ -31,7 +31,7 @@ class Trader:
     _all_orders: List[Order] = []
 
     def __init__(self, ib: IB, contract: Contract, bars: List[BarData]):
-        logging.info('Initializing Trader...')
+        print('Initializing Trader...')
         self.ib = ib
         self.contract = contract
         self.df = util.df(bars)
@@ -45,15 +45,16 @@ class Trader:
     @staticmethod
     def define_contract(symbol: str) -> Contract:
         """Define a contract"""
-        logging.info(f'Defining contract for {symbol}...')
+        print(f'Defining contract for {symbol}...')
         contract = Forex(symbol)
         return contract
 
     def connect_ib(ib: IB):
         """Connect to IB"""
-        logging.info('Connecting to Interactive Brokers...')
-        # ib.connect('127.0.0.1', 7497, clientId=1)
-        ib.connect('localhost', 4002, clientId=999)
+        print('Connecting to Interactive Brokers...')
+        IB.sleep(30)
+        # ib.connect('localhost', 4002, clientId=2)
+        ib.connect('ib_gateway', 4002, clientId=999)
 
     def on_ticker_update(self, ticker: Ticker):
         self.current_bid = ticker.bid
@@ -61,7 +62,7 @@ class Trader:
 
     def subscribe_ticker(self):
         """Suscribir al ticker y manejar las actualizaciones"""
-        logging.info('Subscribing to ticker...')
+        print('Subscribing to ticker...')
         self.ticker = self.ib.reqMktData(self.contract, '', False, False)
         self.ticker.updateEvent += self.on_ticker_update
 
@@ -75,24 +76,18 @@ class Trader:
 
         Dentro de la función, se comprueba si se ha recibido una nueva barra. Si es así, se extrae la última barra (la nueva barra) de 'bars'. Esta nueva barra se puede utilizar para realizar cálculos adicionales, generar señales de trading, o cualquier otra tarea que necesites.
         """
-        # logging.info('********** Updating bars **********')
         if has_new_bar:
-            # logging.info('New bar received')
             new_bar = bars[-1]
             # Convertir el nuevo bar en un DataFrame y añadirlo al buffer
             new_df = util.df([new_bar])
             self.buffer_dfs.append(new_df)
-            # logging.info('New bar added to buffer')
-            # logging.info(f'buffer size: {len(self.buffer_dfs)}')
 
             # Si buffer_dfs tiene 60 barras, crear una nueva vela de 5 minutos
             FIVE_SEC_BARS = 60
             if (len(self.buffer_dfs) == FIVE_SEC_BARS):
-                # logging.info('"""Creating new 5 minute bar..."""')
 
                 # Crear una nueva vela de 5 minutos a partir del buffer y añadirla al DataFrame
                 five_sec_df = pd.concat(self.buffer_dfs)
-                # logging.info('five_sec_df concat\n', five_sec_df)
 
                 data = {
                     'open': five_sec_df['open_'].iloc[0],
@@ -111,17 +106,18 @@ class Trader:
                 next_index = self.df.index[-1] + 1
                 five_min_df.index = [next_index]
 
-                # logging.info('five_min_df\n', five_min_df)
                 self.df = pd.concat([self.df, five_min_df])
-                logging.info('new 5 min bar\n', self.df.tail(2))
-                # logging.info(f'New DataFrame size: {len(self.df)}')
+
+                print('\n')
+                print(f'[{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}]')
+                print('new 5 min bar\n', self.df.tail(2))
 
                 # Limpiar el buffer y actualizar la última hora de la vela de 5 minutos
                 self.buffer_dfs.clear()
 
                 # Llamar a la estrategia en el nuevo DataFrame
                 action, stop_loss, take_profit = self.strategy.run(self.df)
-                logging.info('action', action)
+                print('action', action)
 
                 if action != 'None':
                     position_size_in_lot_units, adjusted_stop_loss, adjusted_take_profit = self._evaluate_action(
@@ -137,7 +133,7 @@ class Trader:
         """
         Esta función evalúa la acción de la estrategia y devuelve el tamaño de la posición en lotes, el precio de stop loss y el precio de take profit.
         """
-        logging.info('Evaluate action...')
+        print('Evaluate action...')
         LOT_PRICE = 10
         LOT_SIZE = 100000
 
@@ -146,10 +142,10 @@ class Trader:
 
         # Calcular el spread
         spread: float = round(self.current_ask - self.current_bid, 5)
-        logging.info(f"Current spread: {spread}")
-        logging.info('close', self.df['close'].iloc[-1])
-        logging.info('stop_loss', stop_loss)
-        logging.info('take_profit', take_profit)
+        print(f"Current spread: {spread}")
+        print('close:', self.df['close'].iloc[-1])
+        print('stop_loss:', stop_loss)
+        print('take_profit:', take_profit)
 
         # Ajustar el stop loss y take profit para tener en cuenta el spread
         if action == 'BUY':
@@ -159,17 +155,17 @@ class Trader:
             adjusted_stop_loss = round(stop_loss + spread, 5)
             adjusted_take_profit = round(take_profit - spread, 5)
 
-        logging.info('adjusted_stop_loss', adjusted_stop_loss)
-        logging.info('adjusted_take_profit', adjusted_take_profit)
+        print('adjusted_stop_loss:', adjusted_stop_loss)
+        print('adjusted_take_profit:', adjusted_take_profit)
 
         # Calcular el tamaño de la posición en lotes
         stop_loss_distance = round(abs(
             self.df['close'].iloc[-1] - adjusted_stop_loss) * 10000, 3)
-        logging.info('stop_loss_distance', stop_loss_distance)
+        print('stop_loss_distance:', stop_loss_distance)
 
         position_size_in_lot_units = round(BALANCE * RISK /
                                            (stop_loss_distance * LOT_PRICE) * LOT_SIZE)
-        logging.info('position_size_in_lot_units', position_size_in_lot_units)
+        print('position_size_in_lot_units:', position_size_in_lot_units)
 
         return position_size_in_lot_units, adjusted_stop_loss, adjusted_take_profit
 
@@ -187,38 +183,38 @@ class Trader:
         try:
            # Crear y enviar una orden de mercado
             market_order = MarketOrder(action, totalQuantity)
-            logging.info('Placing market order')
+            print('Placing market order')
             trade1 = self.ib.placeOrder(self.contract, market_order)
-            logging.info(
+            print(
                 f'{market_order.action} {market_order.orderType} order submitted.')
-            logging.info('trade1', trade1.log)
+            print('trade1:', trade1.log)
 
             oca_group = f'OCA_{self.ib.client.getReqId()}'
 
             # Crear y enviar la orden Stop
             stop_order = StopOrder(action=opposite_action, totalQuantity=totalQuantity, stopPrice=stop_loss,
                                    ocaGroup=oca_group, ocaType=1, tif='GTC')
-            logging.info('Placing stop order')
+            print('Placing stop order')
             trade2 = self.ib.placeOrder(self.contract, stop_order)
-            logging.info(
+            print(
                 f'{stop_order.action} {stop_order.orderType} order submitted.')
-            logging.info('trade2', trade2.log)
+            print('trade2:', trade2.log)
 
             # Crear y enviar la orden Limit
             profit_order = LimitOrder(action=opposite_action, totalQuantity=totalQuantity, lmtPrice=take_profit,
                                       ocaGroup=oca_group, ocaType=1, tif='GTC')
-            logging.info('Placing profit order')
+            print('Placing profit order')
             trade3 = self.ib.placeOrder(self.contract, profit_order)
-            logging.info(
+            print(
                 f'{profit_order.action} {profit_order.orderType} order submitted.')
-            logging.info('trade3', trade3.log)
+            print('trade3:', trade3.log)
 
             # Añadir las órdenes a la lista de órdenes
             self._add_order_to_list(market_order.orderId, action, totalQuantity,
                                     self.df['close'].iloc[-1], stop_loss, take_profit)
 
         except Exception as e:
-            logging.info(f'Error placing order: {e}')
+            print(f'Error placing order: {e}')
 
     def _add_order_to_list(self, order_id, action, quantity, price, stop_loss, take_profit):
         date = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
