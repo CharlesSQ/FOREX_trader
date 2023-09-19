@@ -1,0 +1,110 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ib-gateway-secrets
+type: Opaque
+data:
+  IB_ACCOUNT: [base64-encoded-value]
+  IB_PASSWORD: [base64-encoded-value]
+  TRADE_MODE: [base64-encoded-value]
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: trader-bot-pvc
+  creationTimestamp: null
+  labels:
+    app.kubernetes.io/name: trader_bot_pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Mi
+  storageClassName: do-block-storage
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ib-gateway
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: ib-gateway
+  template:
+    metadata:
+      labels:
+        app: ib-gateway
+    spec:
+      containers:
+        - name: ib-gateway
+          image: charlessq/ib-gateway-ibc:v1.2
+          env:
+            - name: IB_ACCOUNT
+              valueFrom:
+                secretKeyRef:
+                  name: ib-gateway-secrets
+                  key: IB_ACCOUNT
+            - name: IB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ib-gateway-secrets
+                  key: IB_PASSWORD
+            - name: TRADE_MODE
+              valueFrom:
+                secretKeyRef:
+                  name: ib-gateway-secrets
+                  key: TRADE_MODE
+          ports:
+            - name: ib-port
+              containerPort: 4002
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ib-gateway-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4000
+      targetPort: ib-port
+      protocol: TCP
+  selector:
+    app: ib-gateway
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trader-bot
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: trader-bot
+  template:
+    metadata:
+      labels:
+        app: trader-bot
+    spec:
+      containers:
+        - name: trader-bot
+          image: charlessq/trader_bot:v1.1
+          volumeMounts:
+            - mountPath: /app/data
+              name: data-volume
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: trader-bot-pvc
