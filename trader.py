@@ -52,8 +52,8 @@ class Trader:
     def connect_ib(ib: IB):
         """Connect to IB"""
         logging.info('Connecting to Interactive Brokers...')
-        ib.connect('localhost', 4002, clientId=2)
-        # ib.connect('ib_gateway', 4002, clientId=999)
+        # ib.connect('localhost', 4002, clientId=2)
+        ib.connect('ib_gateway', 4002, clientId=999)
 
     def on_ticker_update(self, ticker: Ticker):
         self.current_bid = ticker.bid
@@ -82,7 +82,7 @@ class Trader:
             self.buffer_dfs.append(new_df)
 
             # Si buffer_dfs tiene 60 barras, crear una nueva vela de 5 minutos
-            FIVE_SEC_BARS = 4
+            FIVE_SEC_BARS = 60
             if (len(self.buffer_dfs) == FIVE_SEC_BARS):
 
                 # Crear una nueva vela de 5 minutos a partir del buffer y añadirla al DataFrame

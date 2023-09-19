@@ -25,7 +25,7 @@ def main():
         contract,
         endDateTime='',
         durationStr='9000 S',  # 150 minutos = 30 barras de 5 minutos
-        barSizeSetting='1 min',
+        barSizeSetting='5 mins',
         whatToShow='MIDPOINT',
         useRTH=True,
         formatDate=1)
