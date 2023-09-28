@@ -1,6 +1,6 @@
 from ib_insync import IB
 from trader import Trader
-from ib_manager import IBManager
+from ib_manager import IBManager, stop_IB
 import logging
 import sys
 import asyncio
@@ -11,6 +11,8 @@ logging.basicConfig(level=logging.INFO, stream=sys.stdout,
 
 # Crear una instancia de IB()
 ib = IB()
+contract = None
+bars = None
 
 
 def main():
@@ -29,8 +31,8 @@ def main():
     historique_bars = ib.reqHistoricalData(
         contract,
         endDateTime='',
-        durationStr='9000 S',  # 150 minutos = 30 barras de 5 minutos
-        barSizeSetting='5 mins',
+        durationStr='2400 S',  # 150 minutos = 30 barras de 5 minutos
+        barSizeSetting='1 min',
         whatToShow='MIDPOINT',
         useRTH=True,
         formatDate=1)
@@ -60,13 +62,11 @@ def main():
 if __name__ == "__main__":
     while True:
         try:
+            print('Iniciando...')
             main()
-        except ConnectionError as e:
-            logging.error(f'Error de conexión: {e}')
-            logging.info('Reintentando la conexión en 5 segundos...')
-            ib.disconnect()
-            time.sleep(5)
         except Exception as e:
             logging.error(f'Error desconocido: {e}')
-            ib.disconnect()
-            sys.exit(1)
+            time.sleep(5)
+            logging.info('Reintentando la conexión en 5 segundos...')
+
+            stop_IB(ib, bars, contract)

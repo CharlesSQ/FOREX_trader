@@ -82,7 +82,7 @@ class Trader:
             self.buffer_dfs.append(new_df)
 
             # Si buffer_dfs tiene 60 barras, crear una nueva vela de 5 minutos
-            FIVE_SEC_BARS = 60
+            FIVE_SEC_BARS = 5
             if (len(self.buffer_dfs) == FIVE_SEC_BARS):
 
                 # Crear una nueva vela de 5 minutos a partir del buffer y añadirla al DataFrame
