@@ -33,6 +33,9 @@ class IBManager:
                         return
 
             except Exception as e:
+                logging.info('\n')
+                logging.info(
+                    'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
                 logging.info(f'Error al conectar: {e}')
                 logging.info(
                     'Esperando 10 segundos antes de intentar de nuevo...')
@@ -41,7 +44,7 @@ class IBManager:
     def handle_ib_error(self, reqId, errorCode, errorString, contract):
         logging.error(f"Conexión perdida: {errorCode} - {errorString}")
         if errorCode == 1100:
-            print('Error de conexión con IB 1100')
+            logging.error('Error de conexión con IB 1100')
             stop_IB(self.ib, self._requestedBars, self._contract)
 
     @property
@@ -58,37 +61,37 @@ class IBManager:
 
     @contract.setter
     def contract(self, value):
-        print('value: ', value)
         self._contract = value
 
 
 def stop_IB(ib_instance: IB, requestedBars: RealTimeBarList, contract: Contract):
+    logging.info('Deteniendo operaciones antes de reiniciar...')
 
     cancel_subscriptions(ib_instance, requestedBars, contract)
 
     ib_instance.disconnect()
-    print('Desconectado')
+    logging.info('Desconectado')
 
     # Reiniciar la instancia de IB
-    print('Reiniciando instancia de IB...')
+    logging.info('Reiniciando instancia de IB...')
     global ib
     ib = None
     ib = IB()
 
-    print('Cancelando tareas...')
+    logging.info('Cancelando tareas...')
     for task in asyncio.all_tasks():
         task.cancel()
 
-    print('Deteniendo loop...')
+    logging.info('Deteniendo loop...')
     loop = asyncio.get_event_loop()
 
     # Verificar primero si el loop ya está detenido
     if not loop.is_closed():
         loop.stop()
-        print('Loop detenido')
+        logging.info('Loop detenido')
 
 
 def cancel_subscriptions(ib_instance: IB, requestedBars: RealTimeBarList, contract: Contract):
-    print('Cancelando suscripciones...')
+    logging.info('Cancelando suscripciones...')
     ib_instance.cancelRealTimeBars(requestedBars)
     ib_instance.cancelMktData(contract)

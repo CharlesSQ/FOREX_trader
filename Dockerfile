@@ -23,6 +23,8 @@ RUN pip3 install TA-Lib
 RUN pip3 install ib_insync==0.9.86
 RUN pip3 install pandas==2.0.3
 RUN pip3 install plotly==5.15.0
+RUN pip3 install python-dotenv==1.0.0
+RUN pip3 install colorlog==6.7.0
 
 # Copiamos el código del algoritmo al directorio de trabajo
 COPY . /app
