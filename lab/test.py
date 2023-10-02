@@ -97,7 +97,7 @@ def evaluate_orders(df):
 # Crear una instancia de IB()
 ib = IB()
 print('Conectando a IB')
-ib.connect('127.0.0.1', 7497, clientId=1)
+ib.connect('localhost', 4002, clientId=5)
 
 # 2. Definir el contrato (en este caso, la divisa que queremos operar: EURUSD)
 contract = Forex('EURUSD')

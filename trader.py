@@ -1,16 +1,23 @@
-import datetime
 from ib_insync import IB, BarData, Contract, MarketOrder, LimitOrder, StopOrder, Forex, util, Ticker
-from typing import List, Optional
-from collections import deque
-from dataclasses import dataclass
 from strategies.bollinger_RSI import Strategy
-from constants import BALANCE, RISK
+from typing import List, Optional
+from dataclasses import dataclass
+from collections import deque
 # from utils import plot_bars_Bollinger_RSI, print_local_orders_to_csv
 from utils import print_local_orders_to_csv
+from dotenv import load_dotenv
+
+import datetime
 import pandas as pd
 import numpy as np
 import logging
 import sys
+import os
+
+load_dotenv()
+
+BALANCE = int(os.environ['BALANCE'])
+RISK = float(os.environ['RISK'])
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout,
                     format="[%(asctime)s]%(levelname)s:%(message)s")
@@ -108,6 +115,8 @@ class Trader:
                 self.df = pd.concat([self.df, five_min_df])
 
                 logging.info('\n')
+                logging.info(
+                    '****************************************************')
                 # print(f'[{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}]')
                 logging.info(f'nueva barra de 5 min:\n {self.df.tail(2)}')
 
@@ -162,7 +171,8 @@ class Trader:
         stop_loss_distance = round(abs(
             self.df['close'].iloc[-1] - adjusted_stop_loss) * 10000, 3)
         logging.info(f'Distancia al stop loss: {stop_loss_distance}')
-
+        logging.info(f'Balance: {BALANCE}')
+        logging.info(f'Riesgo: {RISK}')
         position_size_in_lot_units = round(BALANCE * RISK /
                                            (stop_loss_distance * LOT_PRICE) * LOT_SIZE)
         logging.info(
