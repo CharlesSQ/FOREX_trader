@@ -25,8 +25,8 @@ class IBManager:
                     return
                 else:
                     logging.info('Intentando conectar a IB...')
-                    # ib.connect('ib_gateway', 4002, clientId=999)
-                    self.ib.connect('localhost', 4002, clientId=2)
+                    self.ib.connect('ib-gateway-service', 4002, clientId=999)
+                    # self.ib.connect('localhost', 4002, clientId=2)
                     if self.ib.isConnected():
                         self._ibConnected = True
                         logging.info('Conexión establecida.')
