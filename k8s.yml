@@ -4,9 +4,8 @@ metadata:
   name: ib-gateway-secrets
 type: Opaque
 data:
-  IB_ACCOUNT: [base64-encoded-value]
-  IB_PASSWORD: [base64-encoded-value]
-  TRADE_MODE: [base64-encoded-value]
+  IB_ACCOUNT: Y2hhcmxlc2pzcQ==
+  IB_PASSWORD: TEFAcTdQbipDRlYtX3Zn
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -20,7 +19,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 200Mi
+      storage: 500Mi
   storageClassName: do-block-storage
 ---
 apiVersion: apps/v1
@@ -57,10 +56,7 @@ spec:
                   name: ib-gateway-secrets
                   key: IB_PASSWORD
             - name: TRADE_MODE
-              valueFrom:
-                secretKeyRef:
-                  name: ib-gateway-secrets
-                  key: TRADE_MODE
+              value: "paper"
           ports:
             - name: ib-port
               containerPort: 4002
@@ -73,7 +69,7 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: 4000
+    - port: 4002
       targetPort: ib-port
       protocol: TCP
   selector:
@@ -100,7 +96,7 @@ spec:
     spec:
       containers:
         - name: trader-bot
-          image: charlessq/trader_bot:v1.1
+          image: charlessq/trader_bot:v2.0.1
           env:
             - name: BALANCE
               value: "500"
