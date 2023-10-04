@@ -55,13 +55,13 @@ def main():
         bars.updateEvent += trader.on_bar_update
 
         # Asignar el evento de error de IB a la función handle_ib_error de la clase IBManager
-        ib.errorEvent += ib_manager.handle_ib_error
+        ib.disconnectedEvent += ib_manager.handle_ib_disconnected
 
         # Iniciar el ciclo de eventos del cliente de Interactive Brokers.
         logging.info('Inicio del ciclo de eventos del cliente de IB...')
         ib.run()
     except Exception as e:
-        raise
+        raise e
 
 
 if __name__ == "__main__":
