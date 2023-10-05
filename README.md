@@ -23,5 +23,5 @@ docker run -d --env IB_ACCOUNT=charlesjsq --env IB_PASSWORD=LA@q7Pn*CFV-_vg --en
 4. Run trader-bot
 
 ```
-docker run -d --env BALANCE=500 --env RISK=0.04 --network=my_net --name trader-bot charlessq/trader_bot:v2.0.0
+docker run -d --env BALANCE=500 --env RISK=0.04 --network=my_net --name trader-bot charlessq/trader_bot:v2.0.2
 ```
