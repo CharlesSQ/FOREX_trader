@@ -13,6 +13,7 @@ import numpy as np
 import logging
 import sys
 import os
+import json
 
 load_dotenv()
 
@@ -37,7 +38,7 @@ class Order:
 class Trader:
     _all_orders: List[Order] = []
 
-    def __init__(self, ib: IB, contract: Contract, bars: List[BarData]):
+    def __init__(self, ib: IB, contract: Contract, bars: List[BarData], oca_group_counter: int):
         logging.info('Inicializando Trader...')
         self.ib = ib
         self.contract = contract
@@ -48,6 +49,7 @@ class Trader:
         self.strategy = Strategy()
         self.current_bid = None
         self.current_ask = None
+        self.oca_group_counter = oca_group_counter
 
     @staticmethod
     def define_contract(symbol: str) -> Contract:
@@ -200,7 +202,8 @@ class Trader:
                 f'{market_order.action} {market_order.orderType} orden enviada.')
             logging.info(f'market order: {trade1.log}')
 
-            oca_group = f'OCA_{self.ib.client.getReqId()}'
+            self.oca_group_counter += 1
+            oca_group = f'OCA_{self.oca_group_counter}'
 
             # Crear y enviar la orden Stop
             stop_order = StopOrder(action=opposite_action, totalQuantity=totalQuantity, stopPrice=stop_loss,
@@ -239,6 +242,12 @@ class Trader:
 
         # Print orders to csv
         print_local_orders_to_csv(order_object)
+
+        data = {}
+        with open('data/state.json', 'w') as f:
+            # Escribir los datos JSON en el archivo
+            data['oca_group_counter'] = self.oca_group_counter
+            json.dump(data, f)
 
     @property
     def all_orders(self):

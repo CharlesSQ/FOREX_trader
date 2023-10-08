@@ -4,7 +4,8 @@ sys.path.append('/home/charles/Desktop/FOREX_trader')  # noqa
 from utils import plot_bars_Bollinger_RSI, plot_bars_Bollinger_RSI_SMA, plot_bars_SMA, plot_bars_EMA_RSI
 from typing import List
 from dataclasses import dataclass
-from strategies.bollinger_RSI import Strategy
+# from strategies.bollinger_RSI import Strategy
+from strategies.bollinger_RSI_v2 import Strategy
 from ib_insync import IB, util, Forex
 
 
@@ -111,7 +112,7 @@ def main():
     print('Solicitando datos históricos')
     bars = ib.reqHistoricalData(
         contract,
-        endDateTime='20230929 23:59:00 US/Eastern',
+        endDateTime='20230825 23:59:00 US/Eastern',
         durationStr='5 D',
         barSizeSetting='5 mins',
         whatToShow='MIDPOINT',

@@ -4,6 +4,9 @@ from ib_manager import IBManager, stop_IB
 import logging
 import sys
 import time
+import json
+import os
+
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout,
                     format="[%(asctime)s]%(levelname)s:%(message)s")
@@ -12,6 +15,21 @@ logging.basicConfig(level=logging.INFO, stream=sys.stdout,
 ib = IB()
 contract = None
 bars = None
+
+# Cargar el OCA counter
+oca_group_counter: int = 0
+
+if os.path.exists('data/state.json'):
+    with open('data/state.json', 'r') as f:
+        data = json.load(f)
+        oca_group_counter = data['oca_group_counter']
+else:
+    data = {'oca_group_counter': 0}
+
+    # Abrir el archivo en modo de escritura
+    with open('data/state.json', 'w') as f:
+        # Escribir los datos JSON en el archivo
+        json.dump(data, f)
 
 
 def main():
@@ -40,7 +58,7 @@ def main():
             formatDate=1)
 
         # Crear una instancia de la clase Trader
-        trader = Trader(ib, contract, historique_bars)
+        trader = Trader(ib, contract, historique_bars, oca_group_counter)
 
         # Suscribir a market data para obtener el spread
         trader.subscribe_ticker()
