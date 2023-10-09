@@ -1,5 +1,5 @@
 from ib_insync import IB, BarData, Contract, MarketOrder, LimitOrder, StopOrder, Forex, util, Ticker
-from strategies.bollinger_RSI import Strategy
+from strategies.bollinger_RSI_v2 import Strategy
 from typing import List, Optional
 from dataclasses import dataclass
 from collections import deque
@@ -85,6 +85,7 @@ class Trader:
         Dentro de la función, se comprueba si se ha recibido una nueva barra. Si es así, se extrae la última barra (la nueva barra) de 'bars'. Esta nueva barra se puede utilizar para realizar cálculos adicionales, generar señales de trading, o cualquier otra tarea que necesites.
         """
         if has_new_bar:
+            print('on_bar_update')
             new_bar = bars[-1]
             # Convertir el nuevo bar en un DataFrame y añadirlo al buffer
             new_df = util.df([new_bar])

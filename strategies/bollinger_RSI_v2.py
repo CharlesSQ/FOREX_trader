@@ -7,8 +7,6 @@ class Strategy:
     action: str = ''
     stop_loss: float = 0
     take_profit: float = 0
-    _RSI_overbought_cross = ''
-    _RSI_oversold_cross = ''
     _buy = 'ON'
     _sell = 'ON'
     _buy_signals = []
@@ -16,7 +14,7 @@ class Strategy:
 
     def run(self, df) -> Any:
         """Ejecuta la estrategia en el DataFrame proporcionado."""
-        self._get_signal(self, df=df, test=True)
+        self._get_signal(self, df=df)
         if self.action != 'None':
             self._set_stop_and_limit(df)
 
