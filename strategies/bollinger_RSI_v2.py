@@ -1,5 +1,6 @@
 from typing import Any
 from talib import BBANDS, RSI  # type: ignore
+from .utils import get_state, set_state
 
 
 class Strategy:
@@ -7,10 +8,14 @@ class Strategy:
     action: str = ''
     stop_loss: float = 0
     take_profit: float = 0
-    _buy = 'ON'
-    _sell = 'ON'
     _buy_signals = []
     _sell_signals = []
+    _buy: str
+    _sell: str
+
+    def __init__(self) -> None:
+        self._buy = get_state('_buy')
+        self._sell = get_state('_sell')
 
     def run(self, df) -> Any:
         """Ejecuta la estrategia en el DataFrame proporcionado."""
@@ -42,10 +47,12 @@ class Strategy:
             if df_copy['close'].iloc[-1] < df_copy['lower_band'].iloc[-1] and self._buy == 'ON':
                 self._buy = 'OFF'
                 self.action = "BUY"
+                set_state('_buy', self._buy)
 
             elif df_copy['close'].iloc[-1] > df_copy['lower_band'].iloc[-1] and self._buy == 'OFF':
                 self._buy = 'ON'
                 self.action = 'None'
+                set_state('_buy', self._buy)
             else:
                 self.action = 'None'
 
@@ -57,10 +64,12 @@ class Strategy:
             if df_copy['close'].iloc[-1] > df_copy['upper_band'].iloc[-1] and self._sell == 'ON':
                 self._sell = 'OFF'
                 self.action = "SELL"
+                set_state('_sell', self._sell)
 
             elif df_copy['close'].iloc[-1] < df_copy['upper_band'].iloc[-1] and self._sell == 'OFF':
                 self._sell = 'ON'
                 self.action = 'None'
+                set_state('_sell', self._sell)
             else:
                 self.action = 'None'
 
