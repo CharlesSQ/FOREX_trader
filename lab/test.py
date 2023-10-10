@@ -1,7 +1,7 @@
 import sys
 sys.path.append('/home/charles/Desktop/FOREX_trader')  # noqa
 
-from utils import plot_bars_Bollinger_RSI, plot_bars_Bollinger_RSI_SMA, plot_bars_SMA, plot_bars_EMA_RSI
+from strategies.utils import plot_bars_Bollinger_RSI, plot_bars_Bollinger_RSI_SMA, plot_bars_SMA, plot_bars_EMA_RSI
 from typing import List
 from dataclasses import dataclass
 # from strategies.bollinger_RSI import Strategy
@@ -112,7 +112,7 @@ def main():
     print('Solicitando datos históricos')
     bars = ib.reqHistoricalData(
         contract,
-        endDateTime='20230825 23:59:00 US/Eastern',
+        endDateTime='20220909 23:59:00 US/Eastern',
         durationStr='5 D',
         barSizeSetting='5 mins',
         whatToShow='MIDPOINT',
@@ -134,7 +134,9 @@ def main():
             if i >= BARS_FOR_BOLLINGER:
                 action, stop_loss, take_profit = strategy.run(
                     df.iloc[:i+1])
-
+                print('action', action)
+                print('_sell', strategy._sell)
+                print('_buy', strategy._buy)
                 # Si la estrategia determina que debemos comprar o vender, creamos la orden y la enviamos al broker.
                 if action != 'None':
                     # print('i', i)
