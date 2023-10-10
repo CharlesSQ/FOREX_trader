@@ -1,6 +1,9 @@
+from typing import Any
 from talib import BBANDS, RSI, SMA, EMA  # type: ignore
 import plotly.graph_objects as go
+import json
 import csv
+import os
 
 
 def plot_bars_Bollinger_RSI(df, buy_signals, sell_signals):
@@ -253,6 +256,15 @@ def print_executions_to_csv(executions_by_parent):
 
 def print_local_orders_to_csv(order):
     print('Ordenes locales', order)
+
+    # Verificar si el archivo existe
+    if not os.path.isfile('data/ordenes_locales.csv'):
+        # Si no existe, crearlo y escribir el encabezado
+        with open('data/ordenes_locales.csv', 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['Date', 'Order ID', 'Action',
+                            'Quantity', 'Price', 'Stop Loss', 'Take Profit'])
+
     # Abre un archivo en modo append ('a')
     with open('data/ordenes_locales.csv', 'a', newline='') as f:
         writer = csv.writer(f)
@@ -265,3 +277,22 @@ def print_local_orders_to_csv(order):
         # Escribe cada fila de datos
         writer.writerow([order.date, order.order_id, order.action,
                         order.quantity, order.price, order.stop_loss, order.take_profit])
+
+
+def set_state(property: str, value: Any):
+    data = {}
+    with open('data/state.json', 'r') as f:
+        data = json.load(f)
+
+    data[property] = value
+
+    with open('data/state.json', 'w') as f:
+        json.dump(data, f)
+
+
+def get_state(property: str):
+    data = {}
+    with open('data/state.json', 'r') as f:
+        data = json.load(f)
+
+    return data[property]
