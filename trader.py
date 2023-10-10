@@ -4,9 +4,8 @@ from typing import List, Optional
 from dataclasses import dataclass
 from collections import deque
 # from utils import plot_bars_Bollinger_RSI, print_local_orders_to_csv
-from utils import print_local_orders_to_csv
+from strategies.utils import print_local_orders_to_csv, set_state
 from dotenv import load_dotenv
-
 import datetime
 import pandas as pd
 import numpy as np
@@ -85,7 +84,6 @@ class Trader:
         Dentro de la función, se comprueba si se ha recibido una nueva barra. Si es así, se extrae la última barra (la nueva barra) de 'bars'. Esta nueva barra se puede utilizar para realizar cálculos adicionales, generar señales de trading, o cualquier otra tarea que necesites.
         """
         if has_new_bar:
-            print('on_bar_update')
             new_bar = bars[-1]
             # Convertir el nuevo bar en un DataFrame y añadirlo al buffer
             new_df = util.df([new_bar])
@@ -130,6 +128,8 @@ class Trader:
                 logging.info('Llamando a la estrategia...')
                 action, stop_loss, take_profit = self.strategy.run(self.df)
                 logging.info(f'Acción: {action}')
+                logging.info(f'_buy: {self.strategy._buy}')
+                logging.info(f'_sell: {self.strategy._sell}')
 
                 if action != 'None':
                     position_size_in_lot_units, adjusted_stop_loss, adjusted_take_profit = self._evaluate_action(
@@ -243,6 +243,8 @@ class Trader:
 
         # Print orders to csv
         print_local_orders_to_csv(order_object)
+
+        set_state('oca_group_counter', self.oca_group_counter)
 
         data = {}
         with open('data/state.json', 'w') as f:
