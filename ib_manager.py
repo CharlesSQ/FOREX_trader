@@ -38,8 +38,8 @@ class IBManager:
                     'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
                 logging.info(f'Error al conectar: {e}')
                 logging.info(
-                    'Esperando 10 segundos antes de intentar de nuevo...')
-                IB.sleep(5)
+                    'Esperando 2.5 segundos antes de intentar de nuevo...')
+                IB.sleep(2.5)
 
     def handle_ib_disconnected(self):
         logging.error("Conexión perdida: Peer closed connection")

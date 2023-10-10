@@ -1,18 +1,18 @@
 from ib_insync import IB, BarData, Contract, MarketOrder, LimitOrder, StopOrder, Forex, util, Ticker
-from strategies.bollinger_RSI import Strategy
+from strategies.bollinger_RSI_v2 import Strategy
 from typing import List, Optional
 from dataclasses import dataclass
 from collections import deque
 # from utils import plot_bars_Bollinger_RSI, print_local_orders_to_csv
-from utils import print_local_orders_to_csv
+from strategies.utils import print_local_orders_to_csv, set_state
 from dotenv import load_dotenv
-
 import datetime
 import pandas as pd
 import numpy as np
 import logging
 import sys
 import os
+import json
 
 load_dotenv()
 
@@ -35,9 +35,7 @@ class Order:
 
 
 class Trader:
-    _all_orders: List[Order] = []
-
-    def __init__(self, ib: IB, contract: Contract, bars: List[BarData]):
+    def __init__(self, ib: IB, contract: Contract, bars: List[BarData], oca_group_counter: int):
         logging.info('Inicializando Trader...')
         self.ib = ib
         self.contract = contract
@@ -48,6 +46,7 @@ class Trader:
         self.strategy = Strategy()
         self.current_bid = None
         self.current_ask = None
+        self.oca_group_counter = oca_group_counter
 
     @staticmethod
     def define_contract(symbol: str) -> Contract:
@@ -127,6 +126,8 @@ class Trader:
                 logging.info('Llamando a la estrategia...')
                 action, stop_loss, take_profit = self.strategy.run(self.df)
                 logging.info(f'Acción: {action}')
+                logging.info(f'_buy: {self.strategy._buy}')
+                logging.info(f'_sell: {self.strategy._sell}')
 
                 if action != 'None':
                     position_size_in_lot_units, adjusted_stop_loss, adjusted_take_profit = self._evaluate_action(
@@ -192,7 +193,7 @@ class Trader:
         opposite_action = "SELL" if action == "BUY" else "BUY"
 
         try:
-           # Crear y enviar una orden de mercado
+            # Crear y enviar una orden de mercado
             market_order = MarketOrder(action, totalQuantity)
             logging.info('Colocando market order')
             trade1 = self.ib.placeOrder(self.contract, market_order)
@@ -200,7 +201,8 @@ class Trader:
                 f'{market_order.action} {market_order.orderType} orden enviada.')
             logging.info(f'market order: {trade1.log}')
 
-            oca_group = f'OCA_{self.ib.client.getReqId()}'
+            self.oca_group_counter += 1
+            oca_group = f'OCA_a_{self.oca_group_counter}'
 
             # Crear y enviar la orden Stop
             stop_order = StopOrder(action=opposite_action, totalQuantity=totalQuantity, stopPrice=stop_loss,
@@ -234,12 +236,7 @@ class Trader:
         order_object: Order = Order(
             date, order_id, action, quantity, price, stop_loss, take_profit)
 
-        # Add order to current orders
-        self._all_orders.append(order_object)
-
         # Print orders to csv
         print_local_orders_to_csv(order_object)
 
-    @property
-    def all_orders(self):
-        return self._all_orders
+        set_state('oca_group_counter', self.oca_group_counter)
