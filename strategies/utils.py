@@ -269,11 +269,6 @@ def print_local_orders_to_csv(order):
     with open('data/ordenes_locales.csv', 'a', newline='') as f:
         writer = csv.writer(f)
 
-        # Si el archivo está vacío, añade la fila de encabezado.
-        if f.tell() == 0:
-            writer.writerow(['Date', 'Order ID', 'Action',
-                            'Quantity', 'Price', 'Stop Loss', 'Take Profit'])
-
         # Escribe cada fila de datos
         writer.writerow([order.date, order.order_id, order.action,
                         order.quantity, order.price, order.stop_loss, order.take_profit])
