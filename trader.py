@@ -35,8 +35,6 @@ class Order:
 
 
 class Trader:
-    _all_orders: List[Order] = []
-
     def __init__(self, ib: IB, contract: Contract, bars: List[BarData], oca_group_counter: int):
         logging.info('Inicializando Trader...')
         self.ib = ib
@@ -90,7 +88,7 @@ class Trader:
             self.buffer_dfs.append(new_df)
 
             # Si buffer_dfs tiene 60 barras, crear una nueva vela de 5 minutos
-            FIVE_SEC_BARS = 60
+            FIVE_SEC_BARS = 4
             if (len(self.buffer_dfs) == FIVE_SEC_BARS):
 
                 # Crear una nueva vela de 5 minutos a partir del buffer y añadirla al DataFrame
@@ -197,32 +195,32 @@ class Trader:
         try:
            # Crear y enviar una orden de mercado
             market_order = MarketOrder(action, totalQuantity)
-            logging.info('Colocando market order')
-            trade1 = self.ib.placeOrder(self.contract, market_order)
-            logging.info(
-                f'{market_order.action} {market_order.orderType} orden enviada.')
-            logging.info(f'market order: {trade1.log}')
+            # logging.info('Colocando market order')
+            # trade1 = self.ib.placeOrder(self.contract, market_order)
+            # logging.info(
+            #     f'{market_order.action} {market_order.orderType} orden enviada.')
+            # logging.info(f'market order: {trade1.log}')
 
-            self.oca_group_counter += 1
-            oca_group = f'OCA_{self.oca_group_counter}'
+            # self.oca_group_counter += 1
+            # oca_group = f'OCA_{self.oca_group_counter}'
 
-            # Crear y enviar la orden Stop
-            stop_order = StopOrder(action=opposite_action, totalQuantity=totalQuantity, stopPrice=stop_loss,
-                                   ocaGroup=oca_group, ocaType=1, tif='GTC')
-            logging.info('Colocando stop order')
-            trade2 = self.ib.placeOrder(self.contract, stop_order)
-            logging.info(
-                f'{stop_order.action} {stop_order.orderType} orden enviada.')
-            logging.info(f'stop order: {trade2.log}')
+            # # Crear y enviar la orden Stop
+            # stop_order = StopOrder(action=opposite_action, totalQuantity=totalQuantity, stopPrice=stop_loss,
+            #                        ocaGroup=oca_group, ocaType=1, tif='GTC')
+            # logging.info('Colocando stop order')
+            # trade2 = self.ib.placeOrder(self.contract, stop_order)
+            # logging.info(
+            #     f'{stop_order.action} {stop_order.orderType} orden enviada.')
+            # logging.info(f'stop order: {trade2.log}')
 
-            # Crear y enviar la orden Limit
-            profit_order = LimitOrder(action=opposite_action, totalQuantity=totalQuantity, lmtPrice=take_profit,
-                                      ocaGroup=oca_group, ocaType=1, tif='GTC')
-            logging.info('Colocando profit order')
-            trade3 = self.ib.placeOrder(self.contract, profit_order)
-            logging.info(
-                f'{profit_order.action} {profit_order.orderType} orden enviada.')
-            logging.info(f'profit order: {trade3.log}')
+            # # Crear y enviar la orden Limit
+            # profit_order = LimitOrder(action=opposite_action, totalQuantity=totalQuantity, lmtPrice=take_profit,
+            #                           ocaGroup=oca_group, ocaType=1, tif='GTC')
+            # logging.info('Colocando profit order')
+            # trade3 = self.ib.placeOrder(self.contract, profit_order)
+            # logging.info(
+            #     f'{profit_order.action} {profit_order.orderType} orden enviada.')
+            # logging.info(f'profit order: {trade3.log}')
 
             # Añadir las órdenes a la lista de órdenes
             self._add_order_to_list(market_order.orderId, action, totalQuantity,
@@ -238,9 +236,6 @@ class Trader:
         order_object: Order = Order(
             date, order_id, action, quantity, price, stop_loss, take_profit)
 
-        # Add order to current orders
-        self._all_orders.append(order_object)
-
         # Print orders to csv
         print_local_orders_to_csv(order_object)
 
@@ -251,7 +246,3 @@ class Trader:
             # Escribir los datos JSON en el archivo
             data['oca_group_counter'] = self.oca_group_counter
             json.dump(data, f)
-
-    @property
-    def all_orders(self):
-        return self._all_orders
