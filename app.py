@@ -2,11 +2,11 @@ from ib_insync import IB
 from trader import Trader
 from ib_manager import IBManager, stop_IB
 import logging
+import datetime
 import sys
 import time
 import json
 import os
-
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout,
                     format="[%(asctime)s]%(levelname)s:%(message)s")
@@ -19,22 +19,31 @@ bars = None
 # Cargar el OCA counter
 oca_group_counter: int = 0
 
+# Cargar el estado de la aplicación
 if os.path.exists('data/state.json'):
     with open('data/state.json', 'r') as f:
         data = json.load(f)
+        logging.info(f'Loading state: {data}')
         oca_group_counter = data['oca_group_counter']
 else:
-    data = {'oca_group_counter': 0}
+    data = {'oca_group_counter': 0, '_sell': 'ON', '_buy': 'ON'}
 
-    # Abrir el archivo en modo de escritura
     with open('data/state.json', 'w') as f:
-        # Escribir los datos JSON en el archivo
         json.dump(data, f)
 
 
 def main():
     try:
         logging.info('Iniciando...')
+        now = datetime.datetime.now()
+
+        # Verificar si es domingo y si la hora actual es anterior a las 5 de la tarde y 5 minutos
+        if now.weekday() == 6 and now.hour < 17 and now.minute < 5:
+            # Esperar hasta las 5 de la tarde y 5 minutos
+            wait_time = (datetime.datetime(now.year, now.month,
+                         now.day, 17, 5, 0) - now).total_seconds()
+            time.sleep(wait_time)
+
         # Iniciar conexión con Interactive Brokers
         ib_manager = IBManager(ib)
         ib_manager.connect_to_ib()
