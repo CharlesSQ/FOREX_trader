@@ -19,13 +19,8 @@ bars = None
 # Cargar el OCA counter
 oca_group_counter: int = 0
 
-# Cargar el estado de la aplicación
-if os.path.exists('data/state.json'):
-    with open('data/state.json', 'r') as f:
-        data = json.load(f)
-        logging.info(f'Loading state: {data}')
-        oca_group_counter = data['oca_group_counter']
-else:
+# Crear el archivo de estado si no existe
+if not os.path.exists('data/state.json'):
     data = {'oca_group_counter': 0, '_sell': 'ON', '_buy': 'ON'}
 
     with open('data/state.json', 'w') as f:
@@ -67,7 +62,7 @@ def main():
             formatDate=1)
 
         # Crear una instancia de la clase Trader
-        trader = Trader(ib, contract, historique_bars, oca_group_counter)
+        trader = Trader(ib, contract, historique_bars)
 
         # Suscribir a market data para obtener el spread
         trader.subscribe_ticker()

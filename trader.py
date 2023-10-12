@@ -4,7 +4,7 @@ from typing import List, Optional
 from dataclasses import dataclass
 from collections import deque
 # from utils import plot_bars_Bollinger_RSI, print_local_orders_to_csv
-from strategies.utils import print_local_orders_to_csv, set_state
+from strategies.utils import print_local_orders_to_csv, set_state, get_state
 from dotenv import load_dotenv
 import datetime
 import pandas as pd
@@ -35,7 +35,7 @@ class Order:
 
 
 class Trader:
-    def __init__(self, ib: IB, contract: Contract, bars: List[BarData], oca_group_counter: int):
+    def __init__(self, ib: IB, contract: Contract, bars: List[BarData]):
         logging.info('Inicializando Trader...')
         self.ib = ib
         self.contract = contract
@@ -46,7 +46,7 @@ class Trader:
         self.strategy = Strategy()
         self.current_bid = None
         self.current_ask = None
-        self.oca_group_counter = oca_group_counter
+        self.oca_group_counter = get_state('oca_group_counter')
 
     @staticmethod
     def define_contract(symbol: str) -> Contract:
@@ -128,6 +128,7 @@ class Trader:
                 logging.info(f'Acción: {action}')
                 logging.info(f'_buy: {self.strategy._buy}')
                 logging.info(f'_sell: {self.strategy._sell}')
+                logging.info(f'oca_group_counter: {self.oca_group_counter}')
 
                 if action != 'None':
                     position_size_in_lot_units, adjusted_stop_loss, adjusted_take_profit = self._evaluate_action(
@@ -202,7 +203,7 @@ class Trader:
             logging.info(f'market order: {trade1.log}')
 
             self.oca_group_counter += 1
-            oca_group = f'OCA_a_{self.oca_group_counter}'
+            oca_group = f'OCA_b_{self.oca_group_counter}'
 
             # Crear y enviar la orden Stop
             stop_order = StopOrder(action=opposite_action, totalQuantity=totalQuantity, stopPrice=stop_loss,
