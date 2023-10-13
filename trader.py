@@ -203,7 +203,7 @@ class Trader:
             logging.info(f'market order: {trade1.log}')
 
             self.oca_group_counter += 1
-            oca_group = f'OCA_b_{self.oca_group_counter}'
+            oca_group = f'OCA_c_{self.oca_group_counter}'
 
             # Crear y enviar la orden Stop
             stop_order = StopOrder(action=opposite_action, totalQuantity=totalQuantity, stopPrice=stop_loss,
