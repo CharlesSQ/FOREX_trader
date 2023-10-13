@@ -285,6 +285,18 @@ def set_state(property: str, value: Any):
         json.dump(data, f)
 
 
+def reset_buy_sell_flags():
+    data = {}
+    with open('data/state.json', 'r') as f:
+        data = json.load(f)
+
+    data['_buy'] = 'ON'
+    data['_sell'] = 'ON'
+
+    with open('data/state.json', 'w') as f:
+        json.dump(data, f)
+
+
 def get_state(property: str):
     data = {}
     with open('data/state.json', 'r') as f:
