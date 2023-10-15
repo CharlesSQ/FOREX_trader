@@ -34,13 +34,13 @@ def main():
         now = datetime.datetime.now()
 
         # Verificar si es domingo y si la hora actual es anterior a las 5 de la tarde y 5 minutos
-        if now.weekday() == 6 and now.hour < 17:
+        if now.weekday() == 6 and now.hour < 21:
             # Reset buy and sell flags
             reset_buy_sell_flags()
 
             # Esperar hasta las 5 de la tarde y 5 minutos
             wait_time = (datetime.datetime(now.year, now.month,
-                         now.day, 17, 5, 0) - now).total_seconds()
+                         now.day, 21, 5, 0) - now).total_seconds()
             time.sleep(wait_time)
 
         # Iniciar conexión con Interactive Brokers
