@@ -7,6 +7,7 @@ from dataclasses import dataclass
 # from strategies.bollinger_RSI import Strategy
 from strategies.bollinger_RSI_v2 import Strategy
 from ib_insync import IB, util, Forex
+import random
 
 
 @dataclass
@@ -112,7 +113,7 @@ def main():
     print('Solicitando datos históricos')
     bars = ib.reqHistoricalData(
         contract,
-        endDateTime='20220909 23:59:00 US/Eastern',
+        endDateTime='20220805 23:59:00 US/Eastern',
         durationStr='5 D',
         barSizeSetting='5 mins',
         whatToShow='MIDPOINT',
@@ -140,10 +141,19 @@ def main():
                 # Si la estrategia determina que debemos comprar o vender, creamos la orden y la enviamos al broker.
                 if action != 'None':
                     # print('i', i)
+                    # Ajustar el stop loss y take profit para tener en cuenta el spread
+                    spread = random.randint(10, 35)/1000000
+                    print('spread', spread)
+                    if action == 'BUY':
+                        adjusted_stop_loss = round(stop_loss - spread, 5)
+                        adjusted_take_profit = round(take_profit + spread, 5)
+                    else:
+                        adjusted_stop_loss = round(stop_loss + spread, 5)
+                        adjusted_take_profit = round(take_profit - spread, 5)
                     # Crear una orden de stop loss y take profit
                     totalQuantity = INITIAL_BALANCE * RISK
                     create_order(
-                        action, totalQuantity, stop_loss, take_profit, i)
+                        action, totalQuantity, adjusted_stop_loss, adjusted_take_profit, i)
 
     # Graficar en el plot.
     # df_copy = df.copy()
