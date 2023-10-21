@@ -69,7 +69,7 @@ def main():
         trader = Trader(ib, contract, historique_bars)
 
         # Suscribir a market data para obtener el spread
-        trader.subscribe_ticker()
+        # trader.subscribe_ticker()
 
         # Suscribirse a las actualizaciones de datos en tiempo real
         logging.info('Subscribing to real time bars...')
