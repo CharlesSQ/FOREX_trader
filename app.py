@@ -39,6 +39,7 @@ def main():
             reset_buy_sell_flags()
 
             # Esperar hasta las 5 de la tarde y 5 minutos
+            logging.info('Esperando hasta las 5 de la tarde y 5 minutos...')
             wait_time = (datetime.datetime(now.year, now.month,
                          now.day, 21, 5, 0) - now).total_seconds()
             time.sleep(wait_time)
