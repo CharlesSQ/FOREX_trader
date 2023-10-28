@@ -1,7 +1,7 @@
 import sys
 sys.path.append('/home/charles/Desktop/FOREX_trader')  # noqa
 
-from strategies.utils import plot_bars_Bollinger_RSI, plot_bars_Bollinger_RSI_SMA, plot_bars_SMA, plot_bars_EMA_RSI
+from strategies.utils import reset_buy_sell_flags
 from typing import List
 from dataclasses import dataclass
 # from strategies.bollinger_RSI import Strategy
@@ -113,7 +113,7 @@ def main():
     print('Solicitando datos históricos')
     bars = ib.reqHistoricalData(
         contract,
-        endDateTime='20220805 23:59:00 US/Eastern',
+        endDateTime='20231027 23:59:00 US/Eastern',
         durationStr='5 D',
         barSizeSetting='5 mins',
         whatToShow='MIDPOINT',
@@ -122,6 +122,8 @@ def main():
 
     # 4. Convertir los datos obtenidos en un DataFrame de pandas para un manejo más fácil.
     df = util.df(bars)
+
+    reset_buy_sell_flags()
 
     strategy = Strategy()
 
@@ -135,15 +137,12 @@ def main():
             if i >= BARS_FOR_BOLLINGER:
                 action, stop_loss, take_profit = strategy.run(
                     df.iloc[:i+1])
-                print('action', action)
-                print('_sell', strategy._sell)
-                print('_buy', strategy._buy)
                 # Si la estrategia determina que debemos comprar o vender, creamos la orden y la enviamos al broker.
                 if action != 'None':
                     # print('i', i)
                     # Ajustar el stop loss y take profit para tener en cuenta el spread
-                    spread = random.randint(10, 35)/1000000
-                    print('spread', spread)
+                    # spread = random.randint(10, 35)/1000000
+                    spread = 0
                     if action == 'BUY':
                         adjusted_stop_loss = round(stop_loss - spread, 5)
                         adjusted_take_profit = round(take_profit + spread, 5)
