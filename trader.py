@@ -17,6 +17,7 @@ load_dotenv()
 
 BALANCE = int(os.environ['BALANCE'])
 RISK = float(os.environ['RISK'])
+OCA_PREFIX = os.environ['OCA_PREFIX']
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout,
                     format="[%(asctime)s]%(levelname)s:%(message)s")
@@ -203,7 +204,7 @@ class Trader:
             logging.info(f'market order: {trade1.log}')
 
             self.oca_group_counter += 1
-            oca_group = f'OCA_d_{self.oca_group_counter}'
+            oca_group = f'OCA_{OCA_PREFIX}_{self.oca_group_counter}'
 
             # Crear y enviar la orden Stop
             stop_order = StopOrder(action=opposite_action, totalQuantity=totalQuantity, stopPrice=stop_loss,

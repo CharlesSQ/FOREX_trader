@@ -96,12 +96,14 @@ spec:
     spec:
       containers:
         - name: trader-bot
-          image: charlessq/trader_bot:v2.0.4-debug.1
+          image: charlessq/trader_bot:v2.0.7
           env:
             - name: BALANCE
-              value: "500"
+              value: "1014450"
             - name: RISK
               value: "0.04"
+            - name: OCA_PREFIX
+              value: "D"
           volumeMounts:
             - mountPath: /app/data
               name: data-volume
