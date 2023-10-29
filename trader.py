@@ -152,8 +152,8 @@ class Trader:
         #     self.df, self.strategy.buy_signals, self.strategy.sell_signals)
 
         # Calcular el spread
-        # spread: float = round(self.current_ask - self.current_bid, 5)
-        spread: float = 0
+        spread: float = round(self.current_ask - self.current_bid, 5)
+        # spread: float = 0
         logging.info(f"Spread actual: {spread}")
         logging.info(f'Precio de cierre: {self.df["close"].iloc[-1]}')
         logging.info(f'Precio de stop_loss: {stop_loss}')
