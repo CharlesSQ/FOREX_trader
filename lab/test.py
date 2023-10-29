@@ -133,10 +133,10 @@ def main():
         # Recorre cada fila del dataframe
         for i in range(df_length):
             # Solo evalúa la estrategia después de las primeras 40 barras (necesarios para calcular las Bandas de Bollinger)
-            BARS_FOR_BOLLINGER = 40
+            BARS_FOR_BOLLINGER = 100
             if i >= BARS_FOR_BOLLINGER:
                 action, stop_loss, take_profit = strategy.run(
-                    df.iloc[:i+1])
+                    df.iloc[i-100:i+1])
                 # Si la estrategia determina que debemos comprar o vender, creamos la orden y la enviamos al broker.
                 if action != 'None':
                     # print('i', i)
