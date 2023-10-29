@@ -60,7 +60,7 @@ def main():
         historique_bars = ib.reqHistoricalData(
             contract,
             endDateTime='',
-            durationStr='9000 S',  # 150 minutos = 30 barras de 5 minutos
+            durationStr='30000 S',  # 500 minutos = 100 barras de 5 minutos
             barSizeSetting='5 mins',
             whatToShow='MIDPOINT',
             useRTH=True,
