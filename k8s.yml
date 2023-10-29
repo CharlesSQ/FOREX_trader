@@ -96,7 +96,7 @@ spec:
     spec:
       containers:
         - name: trader-bot
-          image: charlessq/trader_bot:v2.0.7
+          image: charlessq/trader_bot:v2.0.8
           env:
             - name: BALANCE
               value: "1014450"
