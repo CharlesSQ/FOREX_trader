@@ -43,6 +43,17 @@ def main():
             wait_time = (datetime.datetime(now.year, now.month,
                          now.day, 21, 5, 0) - now).total_seconds()
             time.sleep(wait_time)
+        elif now.minute % 5 == 0 and now.second != 0:
+            FIVE_MINUTES = 300
+            wait_time = FIVE_MINUTES - now.second
+            logging.info(f'Esperando {wait_time} segundos...')
+            time.sleep(wait_time)
+        elif now.minute % 5 != 0:
+            wait_time = 300 - (now.minute % 5) * 60 - now.second
+            logging.info(f'Esperando {wait_time} segundos...')
+            time.sleep(wait_time)
+        else:
+            pass
 
         # Iniciar conexión con Interactive Brokers
         ib_manager = IBManager(ib)
