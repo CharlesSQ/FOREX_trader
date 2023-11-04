@@ -8,8 +8,7 @@ class Strategy:
     action: str = ''
     stop_loss: float = 0
     take_profit: float = 0
-    _buy_signals = []
-    _sell_signals = []
+    price_close: float = 0
     _buy: str
     _sell: str
 
@@ -27,7 +26,7 @@ class Strategy:
         # print('close', df['close'].iloc[-1])
         # print('stop_loss', self.stop_loss)
         # print('take_profit', self.take_profit)
-        return self.action, self.stop_loss, self.take_profit
+        return self.action, self.stop_loss, self.take_profit, self.price_close
 
     @staticmethod
     def _get_signal(self, df, test=False):
@@ -47,6 +46,7 @@ class Strategy:
             if df_copy['close'].iloc[-1] < df_copy['lower_band'].iloc[-1] and self._buy == 'ON':
                 self._buy = 'OFF'
                 self.action = "BUY"
+                self.price_close = df_copy['close'].iloc[-1]
                 set_state('_buy', self._buy)
 
             elif df_copy['close'].iloc[-1] > df_copy['lower_band'].iloc[-1] and self._buy == 'OFF':
@@ -56,14 +56,12 @@ class Strategy:
             else:
                 self.action = 'None'
 
-            if test and self.action == 'BUY':
-                self.buy_signals.append(df_copy.index[-1])
-
         # Señal de venta: si el precio sobrepasa la Banda de Bollinger superior y el RSI cruza por debajo de 70
         elif df_copy['RSI'].iloc[-1] > 70:
             if df_copy['close'].iloc[-1] > df_copy['upper_band'].iloc[-1] and self._sell == 'ON':
                 self._sell = 'OFF'
                 self.action = "SELL"
+                self.price_close = df_copy['close'].iloc[-1]
                 set_state('_sell', self._sell)
 
             elif df_copy['close'].iloc[-1] < df_copy['upper_band'].iloc[-1] and self._sell == 'OFF':
@@ -72,9 +70,6 @@ class Strategy:
                 set_state('_sell', self._sell)
             else:
                 self.action = 'None'
-
-            if test and self.action == 'SELL':
-                self.sell_signals.append(df_copy.index[-1])
 
         else:
             self.action = 'None'
@@ -93,11 +88,3 @@ class Strategy:
         # Definir stop loss y take profit dependiendo de la acción
         self.stop_loss = lower_bound if self.action == 'BUY' else upper_bound
         self.take_profit = upper_bound if self.action == 'BUY' else lower_bound
-
-    @property
-    def buy_signals(self):
-        return self._buy_signals
-
-    @property
-    def sell_signals(self):
-        return self._sell_signals
