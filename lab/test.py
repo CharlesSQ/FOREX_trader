@@ -14,6 +14,7 @@ import random
 class Order:
     action: str
     totalQuantity: int
+    price_close: float
     stop_loss: float
     take_profit: float
     order_id: int
@@ -26,12 +27,12 @@ all_orders: List[Order] = []
 finished_orders = []
 
 
-def create_order(action, totalQuantity, stop_loss, take_profit, order_id):
+def create_order(action, totalQuantity, price_close, stop_loss, take_profit, order_id):
     # print('create_order')
 
     # Orden principal (a mercado)
     order_object: Order = Order(
-        action, totalQuantity, stop_loss, take_profit, order_id)
+        action, totalQuantity, price_close, stop_loss, take_profit, order_id)
 
     # Add order to current orders
     all_orders.append(order_object)
@@ -55,8 +56,9 @@ def evaluate_orders(df):
 
             if order.action == 'SELL':
                 if higher_price >= order.stop_loss:
-                    # print('LOSS')
-                    # print('action', order.action)
+                    print('action', order.action)
+                    print('price_close', order.price_close)
+                    print('LOSS')
                     # print('higher_price', higher_price)
                     # print('stop_loss', order.stop_loss)
                     finished_orders.append(
@@ -65,8 +67,9 @@ def evaluate_orders(df):
                     break
 
                 elif lower_price <= order.take_profit:
-                    # print('WIN')
-                    # print('action', order.action)
+                    print('action', order.action)
+                    print('price_close', order.price_close)
+                    print('WIN')
                     # print('lower_price', lower_price)
                     # print('take_profit', order.take_profit)
                     finished_orders.append(
@@ -76,8 +79,9 @@ def evaluate_orders(df):
 
             elif order.action == 'BUY':
                 if lower_price <= order.stop_loss:
-                    # print('LOSS')
-                    # print('action', order.action)
+                    print('action', order.action)
+                    print('price_close', order.price_close)
+                    print('LOSS')
                     # print('lower_price', lower_price)
                     # print('stop_loss', order.stop_loss)
                     finished_orders.append(
@@ -86,8 +90,9 @@ def evaluate_orders(df):
                     break
 
                 elif higher_price >= order.take_profit:
-                    # print('WIN')
-                    # print('action', order.action)
+                    print('action', order.action)
+                    print('price_close', order.price_close)
+                    print('WIN')
                     # print('higher_price', higher_price)
                     # print('take_profit', order.take_profit)
                     finished_orders.append(
@@ -113,7 +118,7 @@ def main():
     print('Solicitando datos históricos')
     bars = ib.reqHistoricalData(
         contract,
-        endDateTime='20231027 23:59:00 US/Eastern',
+        endDateTime='20231103 23:59:00 US/Eastern',
         durationStr='5 D',
         barSizeSetting='5 mins',
         whatToShow='MIDPOINT',
@@ -135,7 +140,7 @@ def main():
             # Solo evalúa la estrategia después de las primeras 40 barras (necesarios para calcular las Bandas de Bollinger)
             BARS_FOR_BOLLINGER = 100
             if i >= BARS_FOR_BOLLINGER:
-                action, stop_loss, take_profit = strategy.run(
+                action, stop_loss, take_profit, price_close = strategy.run(
                     df.iloc[i-100:i+1])
                 # Si la estrategia determina que debemos comprar o vender, creamos la orden y la enviamos al broker.
                 if action != 'None':
@@ -152,7 +157,7 @@ def main():
                     # Crear una orden de stop loss y take profit
                     totalQuantity = INITIAL_BALANCE * RISK
                     create_order(
-                        action, totalQuantity, adjusted_stop_loss, adjusted_take_profit, i)
+                        action, totalQuantity, price_close, adjusted_stop_loss, adjusted_take_profit, i)
 
     # Graficar en el plot.
     # df_copy = df.copy()
