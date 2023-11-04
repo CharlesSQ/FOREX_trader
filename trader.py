@@ -47,6 +47,7 @@ class Trader:
         self.current_bid = None
         self.current_ask = None
         self.oca_group_counter = get_state('oca_group_counter')
+        self._first_5sec_bars = True
 
     @staticmethod
     def define_contract(symbol: str) -> Contract:
@@ -82,10 +83,14 @@ class Trader:
         Dentro de la función, se comprueba si se ha recibido una nueva barra. Si es así, se extrae la última barra (la nueva barra) de 'bars'. Esta nueva barra se puede utilizar para realizar cálculos adicionales, generar señales de trading, o cualquier otra tarea que necesites.
         """
         if has_new_bar:
-            new_bar = bars[-1]
-            # Convertir el nuevo bar en un DataFrame y añadirlo al buffer
-            new_df = util.df([new_bar])
-            self.buffer_dfs.append(new_df)
+            # Skip first 5 sec bars
+            if not self._first_5sec_bars:
+                new_bar = bars[-1]
+                # Convertir el nuevo bar en un DataFrame y añadirlo al buffer
+                new_df = util.df([new_bar])
+                self.buffer_dfs.append(new_df)
+
+                self._first_5sec_bars = False
 
             # Si buffer_dfs tiene 60 barras, crear una nueva vela de 5 minutos
             FIVE_SEC_BARS = 60
@@ -124,7 +129,8 @@ class Trader:
 
                 # Llamar a la estrategia en el nuevo DataFrame
                 logging.info('Llamando a la estrategia...')
-                action, stop_loss, take_profit = self.strategy.run(self.df)
+                action, stop_loss, take_profit, price_close = self.strategy.run(
+                    self.df)
                 logging.info(f'Acción: {action}')
                 logging.info(f'_buy: {self.strategy._buy}')
                 logging.info(f'_sell: {self.strategy._sell}')
@@ -147,9 +153,6 @@ class Trader:
         logging.info('Evaluate action...')
         LOT_PRICE = 10
         LOT_SIZE = 100000
-
-        # plot_bars_Bollinger_RSI(
-        #     self.df, self.strategy.buy_signals, self.strategy.sell_signals)
 
         # Calcular el spread
         # spread: float = round(self.current_ask - self.current_bid, 5)
