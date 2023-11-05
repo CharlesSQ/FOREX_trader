@@ -90,7 +90,7 @@ class Trader:
                 new_df = util.df([new_bar])
                 self.buffer_dfs.append(new_df)
 
-                self._first_5sec_bars = False
+            self._first_5sec_bars = False
 
             # Si buffer_dfs tiene 60 barras, crear una nueva vela de 5 minutos
             FIVE_SEC_BARS = 60
