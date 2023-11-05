@@ -45,11 +45,12 @@ def main():
             time.sleep(wait_time)
         elif now.minute % 5 == 0:
             FIVE_MINUTES = 300
-            wait_time = FIVE_MINUTES - now.second
+            wait_time = FIVE_MINUTES - now.second - now.microsecond / 1000000
             logging.info(f'Esperando {wait_time} segundos...')
             time.sleep(wait_time)
         elif now.minute % 5 != 0:
-            wait_time = 300 - (now.minute % 5) * 60 - now.second
+            wait_time = 300 - (now.minute % 5) * 60 - \
+                now.second - now.microsecond / 1000000
             logging.info(f'Esperando {wait_time} segundos...')
             time.sleep(wait_time)
         else:

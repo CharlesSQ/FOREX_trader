@@ -84,13 +84,13 @@ class Trader:
         """
         if has_new_bar:
             # Skip first 5 sec bars
-            if not self._first_5sec_bars:
+            if self._first_5sec_bars:
+                self._first_5sec_bars = False
+            else:
                 new_bar = bars[-1]
                 # Convertir el nuevo bar en un DataFrame y añadirlo al buffer
                 new_df = util.df([new_bar])
                 self.buffer_dfs.append(new_df)
-
-            self._first_5sec_bars = False
 
             # Si buffer_dfs tiene 60 barras, crear una nueva vela de 5 minutos
             FIVE_SEC_BARS = 60

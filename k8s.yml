@@ -4,8 +4,8 @@ metadata:
   name: ib-gateway-secrets
 type: Opaque
 data:
-  IB_ACCOUNT: Y2hhcmxlc2pzcQ==
-  IB_PASSWORD: TEFAcTdQbipDRlYtX3Zn
+  IB_ACCOUNT: Y2hhcmxlc3Nx
+  IB_PASSWORD: SnRuVVlFNW0rU244I0Q1
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -96,14 +96,14 @@ spec:
     spec:
       containers:
         - name: trader-bot
-          image: charlessq/trader_bot:v2.0.8
+          image: charlessq/trader_bot:v2.1.0
           env:
             - name: BALANCE
-              value: "1014450"
+              value: "2000"
             - name: RISK
               value: "0.04"
             - name: OCA_PREFIX
-              value: "D"
+              value: "A"
           volumeMounts:
             - mountPath: /app/data
               name: data-volume
