@@ -103,7 +103,7 @@ spec:
             - name: RISK
               value: "0.04"
             - name: OCA_PREFIX
-              value: "A"
+              value: "B"
           volumeMounts:
             - mountPath: /app/data
               name: data-volume
