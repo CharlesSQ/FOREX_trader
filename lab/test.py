@@ -1,13 +1,12 @@
 import sys
 sys.path.append('/home/charles/Desktop/FOREX_trader')  # noqa
 
-from strategies.utils import reset_buy_sell_flags
+from strategies.utils import reset_buy_sell_flags, plot_bars_Bollinger_RSI
 from typing import List
 from dataclasses import dataclass
 # from strategies.bollinger_RSI import Strategy
 from strategies.bollinger_RSI_v2 import Strategy
 from ib_insync import IB, util, Forex
-import random
 
 
 @dataclass
@@ -47,17 +46,25 @@ def evaluate_orders(df):
     for order in all_orders:
         # Recorre cada orden
         df_length = len(df)
+        print('\n\n')
 
         # Recorrer cada fila del dataframe a partir de la fila en la que se creó la orden
-        for i in range(order.order_id, df_length):
+        for i in range(order.order_id + 1, df_length):
             # Recorre cada fila del dataframe
             higher_price = df['high'][i]
             lower_price = df['low'][i]
+            close = df['close'][i]
+            print('higher_price', higher_price)
+            print('lower_price', lower_price)
+            print('close', close)
 
             if order.action == 'SELL':
                 if higher_price >= order.stop_loss:
+                    print('\n------------------------')
                     print('action', order.action)
                     print('price_close', order.price_close)
+                    print('higher_price', higher_price)
+                    print('lower_price', lower_price)
                     print('LOSS')
                     # print('higher_price', higher_price)
                     # print('stop_loss', order.stop_loss)
@@ -67,8 +74,11 @@ def evaluate_orders(df):
                     break
 
                 elif lower_price <= order.take_profit:
+                    print('\n------------------------')
                     print('action', order.action)
                     print('price_close', order.price_close)
+                    print('higher_price', higher_price)
+                    print('lower_price', lower_price)
                     print('WIN')
                     # print('lower_price', lower_price)
                     # print('take_profit', order.take_profit)
@@ -79,8 +89,11 @@ def evaluate_orders(df):
 
             elif order.action == 'BUY':
                 if lower_price <= order.stop_loss:
+                    print('\n------------------------')
                     print('action', order.action)
                     print('price_close', order.price_close)
+                    print('higher_price', higher_price)
+                    print('lower_price', lower_price)
                     print('LOSS')
                     # print('lower_price', lower_price)
                     # print('stop_loss', order.stop_loss)
@@ -90,8 +103,11 @@ def evaluate_orders(df):
                     break
 
                 elif higher_price >= order.take_profit:
+                    print('\n------------------------')
                     print('action', order.action)
                     print('price_close', order.price_close)
+                    print('higher_price', higher_price)
+                    print('lower_price', lower_price)
                     print('WIN')
                     # print('higher_price', higher_price)
                     # print('take_profit', order.take_profit)
@@ -118,7 +134,7 @@ def main():
     print('Solicitando datos históricos')
     bars = ib.reqHistoricalData(
         contract,
-        endDateTime='20231103 23:59:00 US/Eastern',
+        endDateTime='20231110 23:59:00 US/Eastern',
         durationStr='5 D',
         barSizeSetting='5 mins',
         whatToShow='MIDPOINT',
@@ -159,7 +175,7 @@ def main():
                     create_order(
                         action, totalQuantity, price_close, adjusted_stop_loss, adjusted_take_profit, i)
 
-    # Graficar en el plot.
+    # # Graficar en el plot.
     # df_copy = df.copy()
 
     # plot_bars_Bollinger_RSI(
