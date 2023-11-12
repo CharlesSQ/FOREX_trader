@@ -16,13 +16,13 @@ docker network create my_net
 
 3. Run IB Gateway
 
-Account 1
+Demo account
 
 ```
 docker run -d --env IB_ACCOUNT=charlesjsq --env IB_PASSWORD=LA@q7Pn*CFV-_vg --env TRADE_MODE=paper --network=my_net --name ib-gateway-service -p 4002:4002 charlessq/ib-gateway-ibc:v1.2 tail -f /dev/null
 ```
 
-Account 2
+Real account
 
 ```
 docker run -d --env IB_ACCOUNT=charlessq --env IB_PASSWORD=JtnUYE5m+Sn8#D5 --env TRADE_MODE=paper --network=my_net --name ib-gateway-service -p 4002:4002 charlessq/ib-gateway-ibc:v1.2 tail -f /dev/null
