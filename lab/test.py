@@ -4,8 +4,9 @@ sys.path.append('/home/charles/Desktop/FOREX_trader')  # noqa
 from strategies.utils import reset_buy_sell_flags, plot_bars_Bollinger_RSI
 from typing import List
 from dataclasses import dataclass
-# from strategies.bollinger_RSI import Strategy
-from strategies.bollinger_RSI_v2 import Strategy
+from strategies.bollinger_RSI import Strategy
+# from strategies.bollinger_RSI_v2 import Strategy
+# from strategies.bollinger_RSI_v3 import Strategy
 from ib_insync import IB, util, Forex
 
 

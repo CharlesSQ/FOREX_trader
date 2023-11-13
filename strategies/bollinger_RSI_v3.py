@@ -12,9 +12,12 @@ class Strategy:
     _buy_signals = []
     _sell_signals = []
 
-    def run(self, df, test=False) -> Any:
+    def __init__(self, test=False) -> None:
+        self._test = test
+
+    def run(self, df) -> Any:
         """Ejecuta la estrategia en el DataFrame proporcionado."""
-        self._get_signal(self, df=df, test=test)
+        self._get_signal(self, df=df, test=self._test)
         if self.action != 'None':
             self._set_stop_and_limit(df)
 
