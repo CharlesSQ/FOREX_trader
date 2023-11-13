@@ -12,7 +12,6 @@ from ib_insync import IB, util, Forex
 @dataclass
 class Order:
     action: str
-    totalQuantity: int
     price_close: float
     stop_loss: float
     take_profit: float
@@ -26,95 +25,81 @@ all_orders: List[Order] = []
 finished_orders = []
 
 
-def create_order(action, totalQuantity, price_close, stop_loss, take_profit, order_id):
+def create_order(action, price_close, stop_loss, take_profit, order_id):
     # print('create_order')
 
     # Orden principal (a mercado)
     order_object: Order = Order(
-        action, totalQuantity, price_close, stop_loss, take_profit, order_id)
+        action, price_close, stop_loss, take_profit, order_id)
 
     # Add order to current orders
     all_orders.append(order_object)
 
 
-def evaluate_orders(df):
-    print('evaluate_orders')
-    global current_balance
-    global all_orders
+def evaluate_order(order: Order, higher_price, lower_price):
     global finished_orders
 
-    for order in all_orders:
-        # Recorre cada orden
-        df_length = len(df)
-        print('\n\n')
+    # print('higher_price', higher_price)
+    # print('lower_price', lower_price)
+    # print('close', close)
 
-        # Recorrer cada fila del dataframe a partir de la fila en la que se creó la orden
-        for i in range(order.order_id + 1, df_length):
-            # Recorre cada fila del dataframe
-            higher_price = df['high'][i]
-            lower_price = df['low'][i]
-            close = df['close'][i]
-            print('higher_price', higher_price)
-            print('lower_price', lower_price)
-            print('close', close)
+    if order.action == 'SELL':
+        if higher_price >= order.stop_loss:
+            print('\n------------------------')
+            print('action', order.action)
+            print('price_close', order.price_close)
+            # print('higher_price', higher_price)
+            # print('lower_price', lower_price)
+            print('LOSS')
+            # print('higher_price', higher_price)
+            # print('stop_loss', order.stop_loss)
+            finished_orders.append(
+                {'order_id': order.order_id, 'result': 'LOSS'})
+            return 'LOSS'
 
-            if order.action == 'SELL':
-                if higher_price >= order.stop_loss:
-                    print('\n------------------------')
-                    print('action', order.action)
-                    print('price_close', order.price_close)
-                    print('higher_price', higher_price)
-                    print('lower_price', lower_price)
-                    print('LOSS')
-                    # print('higher_price', higher_price)
-                    # print('stop_loss', order.stop_loss)
-                    finished_orders.append(
-                        {'order_id': order.order_id, 'result': 'LOSS'})
-                    current_balance = current_balance - order.totalQuantity
-                    break
+        elif lower_price <= order.take_profit:
+            print('\n------------------------')
+            print('action', order.action)
+            print('price_close', order.price_close)
+            # print('higher_price', higher_price)
+            # print('lower_price', lower_price)
+            print('WIN')
+            # print('lower_price', lower_price)
+            # print('take_profit', order.take_profit)
+            finished_orders.append(
+                {'order_id': order.order_id, 'result': 'PROFIT'})
+            return 'WIN'
+        else:
+            return 'None'
 
-                elif lower_price <= order.take_profit:
-                    print('\n------------------------')
-                    print('action', order.action)
-                    print('price_close', order.price_close)
-                    print('higher_price', higher_price)
-                    print('lower_price', lower_price)
-                    print('WIN')
-                    # print('lower_price', lower_price)
-                    # print('take_profit', order.take_profit)
-                    finished_orders.append(
-                        {'order_id': order.order_id, 'result': 'PROFIT'})
-                    current_balance = current_balance + order.totalQuantity
-                    break
+    elif order.action == 'BUY':
+        if lower_price <= order.stop_loss:
+            print('\n------------------------')
+            print('action', order.action)
+            print('price_close', order.price_close)
+            # print('higher_price', higher_price)
+            # print('lower_price', lower_price)
+            print('LOSS')
+            # print('lower_price', lower_price)
+            # print('stop_loss', order.stop_loss)
+            finished_orders.append(
+                {'order_id': order.order_id, 'result': 'LOSS'})
+            return 'LOSS'
 
-            elif order.action == 'BUY':
-                if lower_price <= order.stop_loss:
-                    print('\n------------------------')
-                    print('action', order.action)
-                    print('price_close', order.price_close)
-                    print('higher_price', higher_price)
-                    print('lower_price', lower_price)
-                    print('LOSS')
-                    # print('lower_price', lower_price)
-                    # print('stop_loss', order.stop_loss)
-                    finished_orders.append(
-                        {'order_id': order.order_id, 'result': 'LOSS'})
-                    current_balance = current_balance - order.totalQuantity
-                    break
-
-                elif higher_price >= order.take_profit:
-                    print('\n------------------------')
-                    print('action', order.action)
-                    print('price_close', order.price_close)
-                    print('higher_price', higher_price)
-                    print('lower_price', lower_price)
-                    print('WIN')
-                    # print('higher_price', higher_price)
-                    # print('take_profit', order.take_profit)
-                    finished_orders.append(
-                        {'order_id': order.order_id, 'result': 'PROFIT'})
-                    current_balance = current_balance + order.totalQuantity
-                    break
+        elif higher_price >= order.take_profit:
+            print('\n------------------------')
+            print('action', order.action)
+            print('price_close', order.price_close)
+            # print('higher_price', higher_price)
+            # print('lower_price', lower_price)
+            print('WIN')
+            # print('higher_price', higher_price)
+            # print('take_profit', order.take_profit)
+            finished_orders.append(
+                {'order_id': order.order_id, 'result': 'PROFIT'})
+            return 'WIN'
+        else:
+            return 'None'
 
 
 # Crear una instancia de IB()
@@ -134,7 +119,7 @@ def main():
     print('Solicitando datos históricos')
     bars = ib.reqHistoricalData(
         contract,
-        endDateTime='20231110 23:59:00 US/Eastern',
+        endDateTime='20221014 23:59:00 US/Eastern',
         durationStr='5 D',
         barSizeSetting='5 mins',
         whatToShow='MIDPOINT',
@@ -146,7 +131,8 @@ def main():
 
     reset_buy_sell_flags()
 
-    strategy = Strategy()
+    strategy = Strategy(test=True)
+    run_strategy = True
 
     # Imprimir gráfico
     if df is not None:
@@ -156,33 +142,29 @@ def main():
             # Solo evalúa la estrategia después de las primeras 40 barras (necesarios para calcular las Bandas de Bollinger)
             BARS_FOR_BOLLINGER = 100
             if i >= BARS_FOR_BOLLINGER:
-                action, stop_loss, take_profit, price_close = strategy.run(
-                    df.iloc[i-100:i+1])
-                # Si la estrategia determina que debemos comprar o vender, creamos la orden y la enviamos al broker.
-                if action != 'None':
-                    # print('i', i)
-                    # Ajustar el stop loss y take profit para tener en cuenta el spread
-                    # spread = random.randint(10, 35)/1000000
-                    spread = 0
-                    if action == 'BUY':
-                        adjusted_stop_loss = round(stop_loss - spread, 5)
-                        adjusted_take_profit = round(take_profit + spread, 5)
-                    else:
-                        adjusted_stop_loss = round(stop_loss + spread, 5)
-                        adjusted_take_profit = round(take_profit - spread, 5)
-                    # Crear una orden de stop loss y take profit
-                    totalQuantity = INITIAL_BALANCE * RISK
-                    create_order(
-                        action, totalQuantity, price_close, adjusted_stop_loss, adjusted_take_profit, i)
+                if run_strategy:
+                    action, stop_loss, take_profit, price_close = strategy.run(
+                        df.iloc[i-100:i+1], test=True)
+
+                    if action != 'None':
+                        create_order(
+                            action, price_close, stop_loss, take_profit, i)
+                        run_strategy = False
+
+                else:
+                    # Evaluate last order
+                    order = all_orders[-1]
+                    higher_price = df['high'].iloc[i]
+                    lower_price = df['low'].iloc[i]
+                    result = evaluate_order(order, higher_price, lower_price)
+                    if result != 'None':
+                        run_strategy = True
 
     # # Graficar en el plot.
     # df_copy = df.copy()
 
     # plot_bars_Bollinger_RSI(
     #     df_copy, strategy.buy_signals, strategy.sell_signals)
-
-    # Evaluar ordenes actuales
-    evaluate_orders(df)
 
     # print('all_orders', all_orders)
     print('total orders', len(all_orders))
@@ -202,7 +184,6 @@ def main():
     print('wins', wins)
     print('losses', losses)
     print('win_rate', win_rate)
-    print('current_balance', current_balance)
 
 
 if __name__ == "__main__":
