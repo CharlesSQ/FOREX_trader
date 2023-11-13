@@ -9,18 +9,8 @@ class Strategy:
     stop_loss: float = 0
     take_profit: float = 0
     price_close: float = 0
-    _buy: str
-    _sell: str
     _buy_signals = []
     _sell_signals = []
-
-    def __init__(self, test=False) -> None:
-        if test:
-            self._buy = 'ON'
-            self._sell = 'ON'
-        else:
-            self._buy = get_state('_buy')
-            self._sell = get_state('_sell')
 
     def run(self, df, test=False) -> Any:
         """Ejecuta la estrategia en el DataFrame proporcionado."""
