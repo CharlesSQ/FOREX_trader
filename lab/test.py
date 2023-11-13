@@ -145,7 +145,7 @@ def main():
             if i >= BARS_FOR_BOLLINGER:
                 if run_strategy:
                     action, stop_loss, take_profit, price_close = strategy.run(
-                        df.iloc[i-100:i+1], test=True)
+                        df.iloc[i-100:i+1])
 
                     if action != 'None':
                         create_order(
