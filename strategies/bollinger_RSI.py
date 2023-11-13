@@ -7,6 +7,7 @@ class Strategy:
     action: str = ''
     stop_loss: float = 0
     take_profit: float = 0
+    price_close: float = 0
     _RSI_overbought_cross = ''
     _RSI_oversold_cross = ''
     _buy = 'ON'
@@ -14,9 +15,9 @@ class Strategy:
     _buy_signals = []
     _sell_signals = []
 
-    def run(self, df) -> Any:
+    def run(self, df, test=False) -> Any:
         """Ejecuta la estrategia en el DataFrame proporcionado."""
-        self._get_signal(self, df=df, test=True)
+        self._get_signal(self, df=df, test=test)
         if self.action != 'None':
             self._set_stop_and_limit(df)
 
@@ -24,7 +25,7 @@ class Strategy:
         # print('close', df['close'].iloc[-1])
         # print('stop_loss', self.stop_loss)
         # print('take_profit', self.take_profit)
-        return self.action, self.stop_loss, self.take_profit
+        return self.action, self.stop_loss, self.take_profit, self.price_close
 
     @staticmethod
     def _get_signal(self, df, test=False):
@@ -44,6 +45,7 @@ class Strategy:
             if df_copy['close'].iloc[-1] < df_copy['lower_band'].iloc[-1] and self._buy == 'ON':
                 self._buy = 'OFF'
                 self.action = "BUY"
+                self.price_close = df_copy['close'].iloc[-1]
 
             elif df_copy['close'].iloc[-1] > df_copy['lower_band'].iloc[-1] and self._buy == 'OFF':
                 self._buy = 'ON'
@@ -59,6 +61,7 @@ class Strategy:
             if df_copy['close'].iloc[-1] > df_copy['upper_band'].iloc[-1] and self._sell == 'ON':
                 self._sell = 'OFF'
                 self.action = "SELL"
+                self.price_close = df_copy['close'].iloc[-1]
 
             elif df_copy['close'].iloc[-1] < df_copy['upper_band'].iloc[-1] and self._sell == 'OFF':
                 self._sell = 'ON'
