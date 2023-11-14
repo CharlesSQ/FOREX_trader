@@ -1,6 +1,6 @@
 from typing import Any
 from talib import BBANDS, RSI  # type: ignore
-from .utils import get_state, set_state
+from ..strategies.utils import get_state, set_state
 
 
 class Strategy:
@@ -9,21 +9,11 @@ class Strategy:
     stop_loss: float = 0
     take_profit: float = 0
     price_close: float = 0
-    _RSI_overbought_cross = ''
-    _RSI_oversold_cross = ''
-    _buy = 'ON'
-    _sell = 'ON'
     _buy_signals = []
     _sell_signals = []
 
     def __init__(self, test=False) -> None:
-        if test:
-            self._buy = 'ON'
-            self._sell = 'ON'
-            self._test = True
-        else:
-            self._buy = get_state('_buy')
-            self._sell = get_state('_sell')
+        self._test = test
 
     def run(self, df) -> Any:
         """Ejecuta la estrategia en el DataFrame proporcionado."""
@@ -52,36 +42,24 @@ class Strategy:
 
         # Señal de compra: si el precio sobrepasa la Banda de Bollinger inferior y el RSI cruza por encima de 30
         if df_copy['RSI'].iloc[-1] < 30:
-            if df_copy['close'].iloc[-1] < df_copy['lower_band'].iloc[-1] and self._buy == 'ON':
-                self._buy = 'OFF'
+            if df_copy['close'].iloc[-1] < df_copy['lower_band'].iloc[-1]:
                 self.action = "BUY"
                 self.price_close = df_copy['close'].iloc[-1]
-                set_state('_buy', self._buy)
 
-            elif df_copy['close'].iloc[-1] > df_copy['lower_band'].iloc[-1] and self._buy == 'OFF':
-                self._buy = 'ON'
+            else:
                 self.action = 'None'
-                set_state('_buy', self._buy)
-            # else:
-            #     self.action = 'None'
 
             if test and self.action == 'BUY':
                 self.buy_signals.append(df_copy.index[-1])
 
         # Señal de venta: si el precio sobrepasa la Banda de Bollinger superior y el RSI cruza por debajo de 70
         elif df_copy['RSI'].iloc[-1] > 70:
-            if df_copy['close'].iloc[-1] > df_copy['upper_band'].iloc[-1] and self._sell == 'ON':
-                self._sell = 'OFF'
+            if df_copy['close'].iloc[-1] > df_copy['upper_band'].iloc[-1]:
                 self.action = "SELL"
                 self.price_close = df_copy['close'].iloc[-1]
-                set_state('_sell', self._sell)
 
-            elif df_copy['close'].iloc[-1] < df_copy['upper_band'].iloc[-1] and self._sell == 'OFF':
-                self._sell = 'ON'
+            else:
                 self.action = 'None'
-                set_state('_sell', self._sell)
-            # else:
-            #     self.action = 'None'
 
             if test and self.action == 'SELL':
                 self.sell_signals.append(df_copy.index[-1])
@@ -91,7 +69,7 @@ class Strategy:
 
     def _set_stop_and_limit(self, df):
         pip_value = 0.0001
-        max_pips = 5
+        max_pips = 20
 
         # Obtener el precio de cierre más reciente
         latest_close = df['close'].iloc[-1]

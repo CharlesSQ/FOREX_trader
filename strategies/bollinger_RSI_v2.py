@@ -90,7 +90,7 @@ class Strategy:
 
     def _set_stop_and_limit(self, df):
         pip_value = 0.0001
-        max_pips = 10
+        max_pips = 5
 
         # Obtener el precio de cierre más reciente
         latest_close = df['close'].iloc[-1]
