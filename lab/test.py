@@ -6,6 +6,7 @@ from typing import List
 from dataclasses import dataclass
 from strategies.bollinger_RSI_v2 import Strategy
 # from EMA_RSI import Strategy
+# from bollinger_RSI_SMA import Strategy
 from ib_insync import IB, util, Forex
 
 
@@ -119,9 +120,9 @@ def main():
     print('Solicitando datos históricos')
     bars = ib.reqHistoricalData(
         contract,
-        endDateTime='20231110 23:59:00 US/Eastern',
+        endDateTime='20230728 23:59:00 US/Eastern',
         durationStr='5 D',
-        barSizeSetting='5 mins',
+        barSizeSetting='1 min',
         whatToShow='MIDPOINT',
         useRTH=True,
         formatDate=1)
@@ -131,7 +132,7 @@ def main():
 
     reset_buy_sell_flags()
 
-    strategy = Strategy()
+    strategy = Strategy(test=True)
     run_strategy = True
 
     # Imprimir gráfico
